@@ -1,7 +1,8 @@
 import React from 'react';
 import { TouchableOpacity, Text, ActivityIndicator, ViewStyle, Platform } from 'react-native';
 import { ButtonComponent } from '@/types/sdui';
-import { BaseComponent, convertStyleToRN } from './BaseComponent';
+import { convertStyleToRN } from './BaseComponent';
+import { useSDUIActionsContext } from '../SDUIActionsContext';
 
 const buttonVariants = {
   primary: {
@@ -49,18 +50,26 @@ const buttonSizes = {
   },
 };
 
-export const Button: React.FC<ButtonComponent> = ({
+export const Button: React.FC<ButtonComponent> = React.memo(({
   title,
   variant = 'primary',
   size = 'medium',
   disabled = false,
   loading = false,
   onPress,
+  actionParams,
   style,
-  ...props
+  ..._props
 }) => {
-  const variantStyle = buttonVariants[variant];
-  const sizeStyle = buttonSizes[size];
+  const { handleAction } = useSDUIActionsContext();
+
+  // Garantir que o variant seja válido, fallback para 'primary'
+  const safeVariant = variant && buttonVariants[variant as keyof typeof buttonVariants] ? variant : 'primary';
+  const variantStyle = buttonVariants[safeVariant as keyof typeof buttonVariants];
+
+  // Garantir que o size seja válido, fallback para 'medium'
+  const safeSize = size && buttonSizes[size as keyof typeof buttonSizes] ? size : 'medium';
+  const sizeStyle = buttonSizes[safeSize as keyof typeof buttonSizes];
 
   const buttonStyle: ViewStyle = {
     ...variantStyle,
@@ -85,8 +94,7 @@ export const Button: React.FC<ButtonComponent> = ({
 
   const handlePress = () => {
     if (!disabled && !loading && onPress) {
-      // Aqui seria implementada a lógica de ação
-      console.log('Button pressed:', onPress);
+      handleAction(onPress, actionParams);
     }
   };
 
@@ -112,4 +120,4 @@ export const Button: React.FC<ButtonComponent> = ({
       )}
     </TouchableOpacity>
   );
-};
+});

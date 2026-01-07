@@ -2,6 +2,7 @@ import React from 'react';
 import { Text, TouchableOpacity, Platform } from 'react-native';
 import { CardComponent, ComponentStyle } from '@/types/sdui';
 import { BaseComponent } from './BaseComponent';
+import { useSDUIActionsContext } from '../SDUIActionsContext';
 
 export const Card: React.FC<CardComponent & { children?: React.ReactNode }> = ({
   title,
@@ -14,10 +15,12 @@ export const Card: React.FC<CardComponent & { children?: React.ReactNode }> = ({
   backgroundColor = '#FFFFFF',
   gradientColors,
   onPress,
+  actionParams,
   style,
   children,
   ...props
 }) => {
+  const { handleAction } = useSDUIActionsContext();
   // Estilo base do card
   const cardStyle: ComponentStyle = {
     backgroundColor,
@@ -81,8 +84,7 @@ export const Card: React.FC<CardComponent & { children?: React.ReactNode }> = ({
         }}
         activeOpacity={0.8}
         onPress={() => {
-          // Aqui seria implementada a lógica de ação
-          console.log('Card pressed:', onPress);
+          handleAction(onPress, actionParams);
         }}
       >
         <CardContent />

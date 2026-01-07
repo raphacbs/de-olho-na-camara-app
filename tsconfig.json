@@ -16,9 +16,6 @@
       "@/navigation/*": [
         "src/navigation/*"
       ],
-      "@/sdui/*": [
-        "src/sdui/*"
-      ],
       "@/types/*": [
         "src/types/*"
       ],

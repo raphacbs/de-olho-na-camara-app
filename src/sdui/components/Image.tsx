@@ -1,7 +1,7 @@
 import React from 'react';
-import { Image as RNImage, ViewStyle } from 'react-native';
+import { Image as RNImage, ImageStyle } from 'react-native';
 import { ImageComponent } from '@/types/sdui';
-import { BaseComponent, convertStyleToRN } from './BaseComponent';
+import { BaseComponent } from './BaseComponent';
 
 export const Image: React.FC<ImageComponent> = ({
   source,
@@ -12,11 +12,10 @@ export const Image: React.FC<ImageComponent> = ({
   style,
   ...props
 }) => {
-  const imageStyle: ViewStyle = {
+  const imageStyle: ImageStyle = {
     width: width || '100%',
     height: height || 200,
     resizeMode,
-    ...convertStyleToRN(style),
   };
 
   // Para URLs remotas ou assets locais

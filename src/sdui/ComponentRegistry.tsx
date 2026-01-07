@@ -6,8 +6,15 @@ import { Spacer } from './components/Spacer';
 import { Card } from './components/Card';
 import { Image } from './components/Image';
 import { Button } from './components/Button';
+import { Input } from './components/Input';
+import { Avatar } from './components/Avatar';
+import { AdvancedFilter } from './components/AdvancedFilter';
+
+
+
 
 // Registry de componentes SDUI
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const componentRegistry: Record<string, React.ComponentType<any>> = {
   TextBlock,
   Container,
@@ -15,16 +22,23 @@ export const componentRegistry: Record<string, React.ComponentType<any>> = {
   Card,
   Image,
   Button,
+  Input,
+  Avatar,
+  AdvancedFilter
   // Adicionar novos componentes aqui conforme necessário
 };
 
-// Função auxiliar para renderizar componentes filhos
-export const renderChildren = (children?: SDUIComponent[]): React.ReactNode => {
+// Função auxiliar para renderizar componentes filhos com chaves determinísticas
+export const renderChildren = (
+  children?: SDUIComponent[],
+  parentPath: string = 'root'
+): React.ReactNode => {
   if (!children) return null;
 
   return children.map((child, index) => {
     const componentType = child.type;
 
+    // Verificar se o componente existe no registry
     const Component = componentRegistry[componentType];
     if (!Component) {
       console.warn(`Component type "${componentType}" not found in registry. Available types:`, Object.keys(componentRegistry));
@@ -35,20 +49,29 @@ export const renderChildren = (children?: SDUIComponent[]): React.ReactNode => {
     const componentProps = { ...child };
     delete componentProps.children;
 
+    // Gerar chave determinística baseada no caminho na árvore
+    // Isso garante unicidade mesmo com IDs duplicados
+    const componentPath = `${parentPath}-${child.type}-${child.id || 'no-id'}-${index}`;
+
+    // Verificar se o componente tem filhos para evitar renderização desnecessária
+    const hasChildren = child.children && child.children.length > 0;
+
     return (
       <Component
-        key={child.id || index}
+        key={componentPath}
         {...componentProps}
       >
-        {renderChildren(child.children)}
+        {hasChildren ? renderChildren(child.children, componentPath) : null}
       </Component>
     );
   });
 };
 
 // Função para registrar novos componentes dinamicamente
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const registerComponent = (
   type: string,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   component: React.ComponentType<any>
 ) => {
   componentRegistry[type] = component;

@@ -5,7 +5,7 @@ import { BaseComponent as BaseComponentType, ComponentStyle } from '@/types/sdui
 interface BaseComponentProps {
   id: string;
   type: string;
-  style?: ComponentStyle;
+  style?: ComponentStyle | ViewStyle;
   children?: React.ReactNode;
 }
 
@@ -20,6 +20,7 @@ const styleMappings: Record<string, (value: unknown) => Record<string, unknown>>
   paddingBottom: (value: unknown) => ({ paddingBottom: value }),
   paddingLeft: (value: unknown) => ({ paddingLeft: value }),
   paddingRight: (value: unknown) => ({ paddingRight: value }),
+  paddingHorizontal: (value: unknown) => ({ paddingHorizontal: value }),
   backgroundColor: (value: unknown) => ({ backgroundColor: value }),
   borderRadius: (value: unknown) => ({ borderRadius: value }),
   borderWidth: (value: unknown) => ({ borderWidth: value }),

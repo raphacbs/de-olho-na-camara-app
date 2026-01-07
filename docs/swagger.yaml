@@ -1,0 +1,1035 @@
+openapi: 3.0.3
+info:
+  title: Watch the Chamber - BFF API
+  description: >
+    Backend For Frontend API between the mobile app and the Brazilian Chamber of Deputies public API.
+    Handles authentication, user management, followed politicians, and notifications.
+  version: 1.0.0
+  contact:
+    name: Raphael Coelho
+    email: contato@raphaelcoelho.dev
+
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Local environment
+  - url: https://api.deolhonacamara.com/api/v1
+    description: Production
+
+tags:
+  - name: Auth
+    description: Authentication and token management
+  - name: Politicians
+    description: Local synchronized politicians data
+  - name: Followed
+    description: Politicians followed by authenticated users
+  - name: Expenses
+    description: Politician expenses data
+  - name: Votes
+    description: Voting records and politician votes
+  - name: Speeches
+    description: Politician speeches in the chamber
+  - name: Propositions
+    description: Legislative propositions
+  - name: Presence
+    description: Politician presence records
+  - name: Devices
+    description: User device management for push notifications
+  - name: Sync
+    description: Data synchronization endpoints
+paths:
+  /api/v1/auth/register:
+    post:
+      tags: [ Auth ]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequestNewUser'
+      responses:
+        '201':
+          description: User successfully created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponseDTO'
+        '400':
+          description: Invalid request data
+
+  /api/v1/auth/login:
+    post:
+      tags: [ Auth ]
+      summary: Perform login and return access tokens
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequestLogin'
+      responses:
+        '200':
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponseDTO'
+        '401':
+          description: Invalid credentials
+
+  /api/v1/politicians:
+    get:
+      tags: [ Politicians ]
+      summary: List all politicians (locally synced)
+      operationId: listPoliticians
+      parameters:
+        - in: query
+          name: page
+          schema: { type: integer, default: 0 }
+        - in: query
+          name: size
+          schema: { type: integer, default: 20 }
+        - in: query
+          name: name
+          schema: { type: string }
+          description: Partial name search (optional)
+        - in: query
+          name: party
+          schema: { type: string }
+          description: Party acronym filter
+        - in: query
+          name: state
+          schema: { type: string }
+          description: State acronym filter
+      responses:
+        '200':
+          description: Paginated list of politicians
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PoliticianResponseDTO'
+
+  /api/v1/politicians/{id}:
+    get:
+      tags: [ Politicians ]
+      summary: Get details of a specific politician
+      operationId: politiciansIdGet
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Politician data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PoliticianDto'
+
+  /api/v1/followed:
+    get:
+      tags: [ Followed ]
+      summary: List followed politicians (paginated)
+      operationId: listFollowed
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+          description: token de autenticação do usuário
+        - in: query
+          name: page
+          schema: { type: integer, default: 0 }
+        - in: query
+          name: size
+          schema: { type: integer, default: 20 }
+      security:
+        - bearerAuth: [ ]
+      responses:
+        '200':
+          description: Paginated list of followed politicians
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PoliticianResponseDTO'
+
+  /api/v1/followed/{politicianId}:
+    post:
+      tags: [ Followed ]
+      summary: Follow a politician
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+          description: token de autenticação do usuário
+        - in: path
+          name: politicianId
+          required: true
+          schema:
+            type: integer
+      responses:
+        '201':
+          description: Politician successfully followed
+
+    delete:
+      tags: [ Followed ]
+      summary: Unfollow a politician
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+          description: token de autenticação do usuário
+        - in: path
+          name: politicianId
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Politician successfully unfollowed
+
+  /api/v1/politicians/{id}/expenses:
+    get:
+      tags: [ Expenses ]
+      summary: Get expenses for a specific politician
+      operationId: getPoliticianExpenses
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+        - in: query
+          name: page
+          schema: { type: integer, default: 0 }
+        - in: query
+          name: size
+          schema: { type: integer, default: 20 }
+        - in: query
+          name: year
+          schema: { type: integer }
+          description: Filter by year
+        - in: query
+          name: month
+          schema: { type: integer }
+          description: Filter by month (1-12)
+      responses:
+        '200':
+          description: Paginated list of expenses
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExpenseResponseDTO'
+
+  /api/v1/politicians/{id}/votes:
+    get:
+      tags: [ Votes ]
+      summary: Get votes for a specific politician
+      operationId: getPoliticianVotes
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+        - in: query
+          name: page
+          schema: { type: integer, default: 0 }
+        - in: query
+          name: size
+          schema: { type: integer, default: 20 }
+      responses:
+        '200':
+          description: Paginated list of votes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PoliticianVoteResponseDTO'
+
+  /api/v1/politicians/{id}/speeches:
+    get:
+      tags: [ Speeches ]
+      summary: Get speeches for a specific politician
+      operationId: getPoliticianSpeeches
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+        - in: query
+          name: page
+          schema: { type: integer, default: 0 }
+        - in: query
+          name: size
+          schema: { type: integer, default: 20 }
+      responses:
+        '200':
+          description: Paginated list of speeches
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpeechResponseDTO'
+
+  /api/v1/politicians/{id}/propositions:
+    get:
+      tags: [ Propositions ]
+      summary: Get propositions for a specific politician
+      operationId: getPoliticianPropositions
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+        - in: query
+          name: page
+          schema: { type: integer, default: 0 }
+        - in: query
+          name: size
+          schema: { type: integer, default: 20 }
+        - in: query
+          name: year
+          schema: { type: integer }
+          description: Filter by year
+
+      responses:
+        '200':
+          description: Paginated list of propositions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PropositionResponseDTO'
+
+  /api/v1/propositions:
+    get:
+      tags: [ Propositions ]
+      summary: List all propositions with filters
+      operationId: listPropositions
+      parameters:
+        - in: query
+          name: page
+          schema: { type: integer, default: 0 }
+        - in: query
+          name: size
+          schema: { type: integer, default: 20 }
+        - in: query
+          name: politicianId
+          schema: { type: string }
+          description: Filter by politician id
+        - in: query
+          name: types
+          schema: 
+            type: array
+            items:
+              type: string
+          description: Filter by proposition types
+        - in: query
+          name: statuses
+          schema: 
+            type: array
+            items:
+              type: string
+          description: Filter by proposition statuses
+        - in: query
+          name: startDate
+          schema: { type: string, format: date }
+          description: Start date filter (YYYY-MM-DD)
+        - in: query
+          name: endDate
+          schema: { type: string, format: date }
+          description: End date filter (YYYY-MM-DD)
+      responses:
+        '200':
+          description: Paginated list of propositions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PropositionResponseDTO'
+
+  /api/v1/politicians/{id}/presence:
+    get:
+      tags: [ Presence ]
+      summary: Get presence records for a specific politician
+      operationId: getPoliticianPresence
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+        - in: query
+          name: page
+          schema: { type: integer, default: 0 }
+        - in: query
+          name: size
+          schema: { type: integer, default: 20 }
+      responses:
+        '200':
+          description: Paginated list of presence records
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PresenceResponseDTO'
+
+  /api/v1/devices:
+    post:
+      tags: [ Devices ]
+      summary: Register or update user device for push notifications
+      operationId: registerDevice
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+          description: token de autenticação do usuário
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeviceRequest'
+      responses:
+        '201':
+          description: Device successfully registered
+        '400':
+          description: Invalid request data
+
+    delete:
+      tags: [ Devices ]
+      summary: Unregister user device
+      operationId: unregisterDevice
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+          description: token de autenticação do usuário
+        - in: query
+          name: fcmToken
+          required: true
+          schema:
+            type: string
+          description: FCM token to unregister
+      responses:
+        '204':
+          description: Device successfully unregistered
+
+  /api/v1/sync/all:
+    post:
+      tags: [ Sync ]
+      summary: Trigger full synchronization of all features
+      operationId: syncAll
+      description: Starts an asynchronous synchronization process for all features (politicians, expenses, votes, speeches, propositions, and presence). Returns immediately without waiting for completion.
+      responses:
+        '202':
+          description: Synchronization started successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncResponse'
+        '500':
+          description: Error starting synchronization
+
+  /api/v1/sync/politicians:
+    post:
+      tags: [ Sync ]
+      summary: Trigger synchronization of politicians only
+      operationId: syncPoliticians
+      description: Starts an asynchronous synchronization process for politicians only.
+      responses:
+        '202':
+          description: Synchronization started successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncResponse'
+
+  /api/v1/sync/expenses:
+    post:
+      tags: [ Sync ]
+      summary: Trigger synchronization of expenses only
+      operationId: syncExpenses
+      description: Starts an asynchronous synchronization process for expenses only.
+      responses:
+        '202':
+          description: Synchronization started successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncResponse'
+
+  /api/v1/sync/votes:
+    post:
+      tags: [ Sync ]
+      summary: Trigger synchronization of votes only
+      operationId: syncVotes
+      description: Starts an asynchronous synchronization process for votes only.
+      responses:
+        '202':
+          description: Synchronization started successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncResponse'
+
+  /api/v1/sync/speeches:
+    post:
+      tags: [ Sync ]
+      summary: Trigger synchronization of speeches only
+      operationId: syncSpeeches
+      description: Starts an asynchronous synchronization process for speeches only.
+      responses:
+        '202':
+          description: Synchronization started successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncResponse'
+
+  /api/v1/sync/propositions:
+    post:
+      tags: [ Sync ]
+      summary: Trigger synchronization of propositions only
+      operationId: syncPropositions
+      description: Starts an asynchronous synchronization process for propositions only.
+      responses:
+        '202':
+          description: Synchronization started successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncResponse'
+
+  /api/v1/sync/presence:
+    post:
+      tags: [ Sync ]
+      summary: Trigger synchronization of presence only
+      operationId: syncPresence
+      description: Starts an asynchronous synchronization process for presence only.
+      responses:
+        '202':
+          description: Synchronization started successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncResponse'
+
+  /api/v1/politicians/{id}/votes-with-proposition:
+    get:
+      tags: [ Votes ]
+      summary: Get politician votes with proposition information
+      operationId: getPoliticianVotesWithProposition
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+        - in: query
+          name: page
+          schema: { type: integer, default: 0 }
+        - in: query
+          name: size
+          schema: { type: integer, default: 20 }
+      responses:
+        '200':
+          description: Paginated list of politician votes with proposition details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PoliticianVoteWithPropositionResponseDTO'
+
+  /api/v1/votings-with-votes:
+    get:
+      tags: [ Votes ]
+      summary: Get votings with related votes
+      operationId: getVotingsWithVotes
+      parameters:
+        - in: query
+          name: page
+          schema: { type: integer, default: 0 }
+        - in: query
+          name: size
+          schema: { type: integer, default: 20 }
+      responses:
+        '200':
+          description: Paginated list of votings with their related votes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VotingWithVotesResponseDTO'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    RequestNewUser:
+      type: object
+      required: [ email, password, fullName ]
+      properties:
+        fullName:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+
+    RequestLogin:
+      type: object
+      required: [ email, password ]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+
+    AuthResponseDTO:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+        tokenType:
+          type: string
+          example: Bearer
+        expireIn:
+          type: integer
+          example: 3600
+        expireAt:
+          type: string
+          format: date-time
+          example: "2025-12-28T16:43:57.000Z"
+
+    PoliticianResponseDTO:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/PoliticianDto'
+        total:
+          type: integer
+        page:
+          type: integer
+        totalPages:
+          type: integer
+        sizePage:
+          type: integer
+
+    PoliticianDto:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 204379
+        name:
+          type: string
+          example: Acácio Favacho
+        party:
+          type: string
+          example: MDB
+        partyUri:
+          type: string
+          example: https://dadosabertos.camara.leg.br/api/v2/partidos/36899
+        state:
+          type: string
+          example: AP
+        legislatureId:
+          type: integer
+          example: 57
+        email:
+          type: string
+          example: dep.acaciofavacho@camara.leg.br
+        uri:
+          type: string
+          example: https://dadosabertos.camara.leg.br/api/v2/deputados/204379
+        photoUrl:
+          type: string
+          example: https://www.camara.leg.br/internet/deputado/bandep/204379.jpg
+
+    ExpenseDto:
+      type: object
+      properties:
+        id:
+          type: integer
+        politicianId:
+          type: integer
+        year:
+          type: integer
+        month:
+          type: integer
+        expenseType:
+          type: string
+        supplier:
+          type: string
+        documentValue:
+          type: string
+        netValue:
+          type: string
+        glosaValue:
+          type: string
+        documentDate:
+          type: string
+          format: date
+        documentUrl:
+          type: string
+
+    ExpenseResponseDTO:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExpenseDto'
+        detail:
+          type: object
+          properties:
+            year:
+              type: integer
+            month:
+              type: integer
+            totalExpenses:
+              type: string
+        total:
+          type: integer
+        page:
+          type: integer
+        totalPages:
+          type: integer
+        sizePage:
+          type: integer
+
+    VoteDto:
+      type: object
+      properties:
+        id:
+          type: string
+        date:
+          type: string
+          format: date
+        description:
+          type: string
+        summary:
+          type: string
+
+    PoliticianVoteDto:
+      type: object
+      properties:
+        id:
+          type: integer
+        voteId:
+          type: string
+        politicianId:
+          type: integer
+        voteOption:
+          type: string
+        vote:
+          $ref: '#/components/schemas/VoteDto'
+
+    PoliticianVoteResponseDTO:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/PoliticianVoteDto'
+        total:
+          type: integer
+        page:
+          type: integer
+        totalPages:
+          type: integer
+        sizePage:
+          type: integer
+
+    SpeechDto:
+      type: object
+      properties:
+        startDateTime:
+          type: string
+        endDateTime:
+          type: string
+        titleEvent:
+          type: string
+        endDateTimeEvent:
+          type: string
+        startDateTimeEvent:
+          type: string
+        summary:
+          type: string
+        speechType:
+          type: string
+        transcription:
+          type: string
+        eventUri:
+          type: string
+        audioUrl:
+          type: string
+        textUrl:
+          type: string
+        videoUrl:
+          type: string
+
+    SpeechResponseDTO:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/SpeechDto'
+        total:
+          type: integer
+        page:
+          type: integer
+        totalPages:
+          type: integer
+        sizePage:
+          type: integer
+
+    PropositionDto:
+      type: object
+      properties:
+        politicianId:
+          type: integer
+        id:
+          type: integer
+        uri:
+          type: string
+        type:
+          type: string
+        codeType:
+          type: string
+        number:
+          type: integer
+        year:
+          type: integer
+        summary:
+          type: string
+        detailedSummary:
+          type: string
+        presentationDate:
+          type: string
+          format: date
+        statusDateTime:
+          type: string
+        statusLastReporterUri:
+          type: string
+        statusTramitationDescription:
+          type: string
+        statusTramitationTypeCode:
+          type: string
+        statusSituationDescription:
+          type: string
+        statusSituationCode:
+          type: string
+        statusDispatch:
+          type: string
+        statusUrl:
+          type: string
+        statusScope:
+          type: string
+        statusAppreciation:
+          type: string
+        uriOrgaoNumerador:
+          type: string
+        uriAutores:
+          type: string
+        typeDescription:
+          type: string
+        keywords:
+          type: string
+        uriPropPrincipal:
+          type: string
+        uriPropAnterior:
+          type: string
+        uriPropPosterior:
+          type: string
+        urlInteiroTeor:
+          type: string
+        urnFinal:
+          type: string
+        text:
+          type: string
+        justification:
+          type: string
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+        status:
+          type: object
+
+    PropositionResponseDTO:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/PropositionDto'
+        total:
+          type: integer
+        page:
+          type: integer
+        totalPages:
+          type: integer
+        sizePage:
+          type: integer
+
+    PresenceDto:
+      type: object
+      properties:
+        id:
+          type: integer
+        politicianId:
+          type: integer
+        date:
+          type: string
+          format: date
+        description:
+          type: string
+        status:
+          type: string
+
+    PresenceResponseDTO:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/PresenceDto'
+        total:
+          type: integer
+        page:
+          type: integer
+        totalPages:
+          type: integer
+        sizePage:
+          type: integer
+
+    DeviceRequest:
+      type: object
+      required: [ fcmToken ]
+      properties:
+        fcmToken:
+          type: string
+          description: Firebase Cloud Messaging token
+
+    SyncResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Synchronization started successfully
+        status:
+          type: string
+          example: ACCEPTED
+
+    PoliticianVoteWithPropositionDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        politicianId:
+          type: integer
+        vote:
+          type: string
+        voteId:
+          type: string
+        voteDate:
+          type: string
+          format: date
+        votingDescription:
+          type: string
+        propositionSummary:
+          type: string
+        propositionYear:
+          type: integer
+        propositionDetailedSummary:
+          type: string
+
+    PoliticianVoteWithPropositionResponseDTO:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/PoliticianVoteWithPropositionDTO'
+        total:
+          type: integer
+        page:
+          type: integer
+        totalPages:
+          type: integer
+        sizePage:
+          type: integer
+
+    VotingWithVotesDTO:
+      type: object
+      properties:
+        id:
+          type: string
+        date:
+          type: string
+          format: date
+        description:
+          type: string
+        organAcronym:
+          type: string
+        votes:
+          type: array
+          items:
+            $ref: '#/components/schemas/PoliticianVoteSummaryDTO'
+
+    PoliticianVoteSummaryDTO:
+      type: object
+      properties:
+        politicianId:
+          type: integer
+        politicianName:
+          type: string
+        voteType:
+          type: string
+
+    VotingWithVotesResponseDTO:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/VotingWithVotesDTO'
+        total:
+          type: integer
+        page:
+          type: integer
+        totalPages:
+          type: integer
+        sizePage:
+          type: integer

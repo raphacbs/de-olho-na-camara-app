@@ -27,7 +27,7 @@ const textVariants = {
   },
 };
 
-export const TextBlock: React.FC<TextBlockComponent> = ({
+export const TextBlock: React.FC<TextBlockComponent> = React.memo(({
   text,
   variant = 'body',
   color = '#000000',
@@ -41,7 +41,9 @@ export const TextBlock: React.FC<TextBlockComponent> = ({
   style,
   ...props
 }) => {
-  const variantStyle = textVariants[variant];
+  // Garantir que o variant seja válido, fallback para 'body'
+  const safeVariant = variant && textVariants[variant as keyof typeof textVariants] ? variant : 'body';
+  const variantStyle = textVariants[safeVariant as keyof typeof textVariants];
 
   const textStyle: TextStyle = {
     ...variantStyle,
@@ -63,4 +65,4 @@ export const TextBlock: React.FC<TextBlockComponent> = ({
       </Text>
     </BaseComponent>
   );
-};
+});

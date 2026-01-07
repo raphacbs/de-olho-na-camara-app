@@ -8,7 +8,6 @@ config.resolver.alias = {
   '@/components': path.resolve(__dirname, 'src/components'),
   '@/screens': path.resolve(__dirname, 'src/screens'),
   '@/navigation': path.resolve(__dirname, 'src/navigation'),
-  '@/sdui': path.resolve(__dirname, 'src/sdui'),
   '@/types': path.resolve(__dirname, 'src/types'),
   '@/utils': path.resolve(__dirname, 'src/utils'),
   '@/hooks': path.resolve(__dirname, 'src/hooks'),

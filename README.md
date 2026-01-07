@@ -1,4 +1,4 @@
-# Fiscaliza AI - Câmara Federal SDUI App
+# Fiscaliza AI - Câmara Federal App
 
 [![Expo](https://img.shields.io/badge/Expo-54.0.0-black.svg)](https://expo.dev/)
 [![React Native](https://img.shields.io/badge/React%20Native-0.76.1-blue.svg)](https://reactnative.dev/)
@@ -6,11 +6,10 @@
 [![ESLint](https://img.shields.io/badge/ESLint-8.56.0-red.svg)](https://eslint.org/)
 [![Prettier](https://img.shields.io/badge/Prettier-3.2.5-pink.svg)](https://prettier.io/)
 
-Aplicativo móvel para acompanhamento de deputados federais brasileiros, desenvolvido com **Server-Driven UI (SDUI)** para máxima flexibilidade e atualização dinâmica da interface.
+Aplicativo móvel para acompanhamento de deputados federais brasileiros.
 
 ## 🚀 Funcionalidades
 
-- 📱 **Interface Dinâmica**: UI controlada por servidor permite atualizações instantâneas
 - 👥 **Acompanhamento de Deputados**: Lista personalizada de deputados seguidos
 - 📊 **Resumos Semanais**: Informações sobre atividades no Congresso
 - 🗳️ **Votações**: Acompanhe votações recentes e históricas
@@ -29,26 +28,14 @@ Este projeto foi recentemente atualizado para o **Expo SDK 54** com as seguintes
 
 ## 🏗️ Arquitetura
 
-### Server-Driven UI (SDUI)
-
-O aplicativo utiliza uma arquitetura **Server-Driven UI** que permite:
-
-- **Atualizações Instantâneas**: Modifique a interface sem necessidade de deploy
-- **A/B Testing**: Teste diferentes versões da UI simultaneamente
-- **Personalização**: Interfaces adaptadas por usuário ou segmento
-- **Iteração Rápida**: Deploy de mudanças visuais independente do código
-
 ### Estrutura Técnica
 
 ```
 src/
 ├── components/          # Componentes compartilhados
 ├── navigation/          # Configuração de navegação React Navigation
-├── sdui/               # Sistema Server-Driven UI
-│   ├── components/     # Componentes SDUI base (TextBlock, Container, etc.)
-│   ├── ComponentRegistry.tsx  # Registro de componentes
-│   └── ScreenRenderer.tsx     # Renderizador principal
 ├── screens/            # Telas do aplicativo
+├── services/           # Serviços de API e dados
 ├── types/              # Definições TypeScript
 └── utils/              # Utilitários e helpers
 ```
@@ -70,11 +57,6 @@ src/
 - **Husky** - Git hooks para qualidade pré-commit
 - **lint-staged** - Linting apenas em arquivos modificados
 
-### SDUI System
-- **Component Registry** - Mapeamento dinâmico de componentes
-- **Type-Safe Components** - Componentes tipados para segurança
-- **Flexible Styling** - Sistema de estilos adaptável
-
 ## 📋 Pré-requisitos
 
 - **Node.js** 18.x ou superior
@@ -91,8 +73,8 @@ src/
 ### 1. Clone o Repositório
 
 ```bash
-git clone https://github.com/seu-usuario/fiscaliza-ai-camara-federal-sdui-app.git
-cd fiscaliza-ai-camara-federal-sdui-app
+git clone https://github.com/seu-usuario/fiscaliza-ai-camara-federal-app.git
+cd fiscaliza-ai-camara-federal-app
 ```
 
 ### 2. Instale as Dependências
@@ -145,55 +127,6 @@ expo build:android    # Build para Android
 expo build:ios       # Build para iOS
 ```
 
-## 🎨 Sistema SDUI
-
-### Componentes Base
-
-O sistema inclui componentes fundamentais para construção de interfaces:
-
-- **TextBlock**: Texto com variantes (title, subtitle, body, caption)
-- **Container**: Layout flexível com direção e espaçamento
-- **Spacer**: Espaçamento consistente
-- **Button**: Interação com estados (loading, disabled)
-- **Image**: Exibição de imagens com resize modes
-- **Card**: Container com elevação e sombra
-
-### Exemplo de Payload SDUI
-
-```json
-{
-  "id": "home-screen",
-  "title": "Início",
-  "components": [
-    {
-      "id": "welcome-title",
-      "type": "TextBlock",
-      "text": "Bem-vindo ao Fiscaliza AI",
-      "variant": "title"
-    },
-    {
-      "id": "spacer-1",
-      "type": "Spacer",
-      "size": "medium"
-    },
-    {
-      "id": "deputies-section",
-      "type": "Container",
-      "direction": "column",
-      "spacing": 16,
-      "children": [
-        {
-          "id": "section-title",
-          "type": "TextBlock",
-          "text": "Deputados que você segue",
-          "variant": "subtitle"
-        }
-      ]
-    }
-  ]
-}
-```
-
 ## 🔧 Configuração de Desenvolvimento
 
 ### Aliases de Path
@@ -202,11 +135,11 @@ O projeto utiliza aliases para imports mais limpos:
 
 ```typescript
 // ✅ Recomendado
-import { SDUIScreen } from '@/types/sdui';
-import { ScreenRenderer } from '@/sdui/ScreenRenderer';
+import { PoliticianDto } from '@/types/api';
+import { dataService } from '@/services/dataService';
 
 // ❌ Não recomendado
-import { SDUIScreen } from '../../types/sdui';
+import { PoliticianDto } from '../../types/api';
 ```
 
 **Aliases disponíveis:**
@@ -214,7 +147,6 @@ import { SDUIScreen } from '../../types/sdui';
 - `@/components/*` - Componentes compartilhados
 - `@/screens/*` - Telas
 - `@/navigation/*` - Navegação
-- `@/sdui/*` - Sistema SDUI
 - `@/types/*` - Tipos TypeScript
 
 ### Linting e Formatação
@@ -245,31 +177,6 @@ Configuração strict com paths absolutos:
 }
 ```
 
-## 🧪 Testes
-
-### Estrutura de Testes
-
-```
-__tests__/
-├── components/     # Testes de componentes
-├── sdui/          # Testes do sistema SDUI
-├── screens/       # Testes de telas
-└── utils/         # Testes de utilitários
-```
-
-### Executando Testes
-
-```bash
-# Executar todos os testes
-npm test
-
-# Executar testes em modo watch
-npm run test:watch
-
-# Executar testes com cobertura
-npm run test:coverage
-```
-
 ## 🚀 Deploy
 
 ### Build de Produção
@@ -291,43 +198,6 @@ expo build:ios --type archive
 3. **Build de produção** com `eas build`
 4. **Upload** para stores respectivas
 
-## 📚 Documentação
-
-### Arquivos de Documentação
-
-- **[Memory Bank](./docs/memory-bank.md)** - Decisões arquiteturais e contexto
-- **[Regras de Componentes](./docs/component-rules.md)** - Padrões para criação de componentes SDUI
-- **[API Documentation](./docs/api.md)** - Documentação da API (futuro)
-
-### Desenvolvimento
-
-Para contribuir com o projeto:
-
-1. **Leia o Memory Bank** para entender as decisões tomadas
-2. **Siga as Regras de Componentes** para manter consistência
-3. **Use os aliases de path** para imports
-4. **Execute linting** antes de commits
-5. **Adicione testes** para novas funcionalidades
-
-## 🤝 Contribuição
-
-1. Fork o projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-4. Push para a branch (`git push origin feature/AmazingFeature`)
-5. Abra um Pull Request
-
-### Padrões de Commit
-
-```
-feat: add new SDUI component
-fix: correct button styling
-docs: update component rules
-style: format code with prettier
-refactor: simplify component registry
-test: add tests for TextBlock component
-```
-
 ## 📝 Licença
 
 Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para detalhes.
@@ -342,25 +212,3 @@ Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para de
 ---
 
 **Desenvolvido com ❤️ para transparência na política brasileira**
-
----
-
-## 🔄 Roadmap
-
-### Próximas Features
-
-- [ ] **API Integration**: Conexão com backend real
-- [ ] **Offline Support**: Cache e sincronização offline
-- [ ] **Push Notifications**: Alertas de votações importantes
-- [ ] **Biometria**: Autenticação por biometria
-- [ ] **Deep Linking**: Navegação direta para conteúdo específico
-
-### Melhorias Técnicas
-
-- [ ] **Component Library**: Expansão da biblioteca SDUI
-- [ ] **State Management**: Redux/Zustand para estado global
-- [ ] **Testing Suite**: Cobertura completa de testes
-- [ ] **Performance**: Otimizações avançadas
-- [ ] **Accessibility**: Conformidade WCAG AAA
-
-Ver [Memory Bank](./docs/memory-bank.md) para detalhes completos do roadmap.

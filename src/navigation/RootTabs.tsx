@@ -45,10 +45,10 @@ export function RootTabs() {
         }}
       />
       <Tab.Screen
-        name="Propostas"
+        name="Proposições"
         component={ProposalsScreen}
         options={{
-          title: 'Propostas',
+          title: 'Proposições',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="document-text-outline" color={color} size={size} />
           ),

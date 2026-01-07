@@ -1,341 +1,273 @@
-
-import React from 'react';
-import { SDUIScreen } from '@/types/sdui';
-import { ScreenRenderer } from '@/sdui/ScreenRenderer';
-
-const mockScreen: SDUIScreen = {
-  "id": "home",
-  "title": "De Olho na Câmara",
-  "components": [
-    // Header com gradiente brasileiro (FIXO)
-    {
-      "id": "header-container",
-      "type": "Container",
-      "direction": "column",
-      "padding": 0,
-      "sticky": true,
-      "style": {
-        "backgroundColor": "#009C3B",
-        "paddingTop": 20,
-        "paddingBottom": 30,
-        "borderBottomLeftRadius": 20,
-        "borderBottomRightRadius": 20
-      },
-      "children": [
-        {
-          "id": "welcome-text",
-          "type": "TextBlock",
-          "text": "🇧🇷 Bem-vindo ao",
-          "variant": "body",
-          "color": "#FFFFFF",
-          "textAlign": "center",
-          "style": { "marginBottom": 8 }
-        },
-        {
-          "id": "title-main",
-          "type": "TextBlock",
-          "text": "De Olho na Câmara",
-          "variant": "display",
-          "color": "#FFFFFF",
-          "fontSize": 28,
-          "fontWeight": "700",
-          "textAlign": "center",
-          "letterSpacing": -0.5,
-          "style": { "marginBottom": 8 }
-        },
-        {
-          "id": "subtitle-main",
-          "type": "TextBlock",
-          "text": "Acompanhe em tempo real as atividades legislativas",
-          "variant": "body",
-          "color": "#E8F5E8",
-          "textAlign": "center",
-          "fontSize": 14
-        }
-      ]
-    },
-
-    // Espaçamento
-    {
-      "id": "spacer-header",
-      "type": "Spacer",
-      "size": "large"
-    },
-
-    // Seção de Últimas Proposições
-    {
-      "id": "propositions-section",
-      "type": "Container",
-      "direction": "column",
-      "spacing": 20,
-      "padding": "0 20",
-      "children": [
-        {
-          "id": "propositions-header",
-          "type": "Container",
-          "direction": "row",
-          "justifyContent": "space-between",
-          "alignItems": "center",
-          "children": [
-            {
-              "id": "propositions-title",
-              "type": "TextBlock",
-              "text": "Últimas Proposições",
-              "variant": "headline",
-              "color": "#1a1a1a",
-              "fontSize": 20,
-              "fontWeight": "600"
-            },
-            {
-              "id": "view-all-btn",
-              "type": "Button",
-              "title": "Ver todas",
-              "variant": "ghost",
-              "size": "small",
-              "onPress": "navigate_propositions"
-            }
-          ]
-        },
-
-        // Cards de proposições
-        {
-          "id": "proposition-1",
-          "type": "Card",
-          "title": "RIC 7828/2025",
-          "subtitle": "Requerimento de Informação",
-          "elevation": 1,
-          "borderRadius": 12,
-          "padding": 16,
-          "margin": "0 0 8 0",
-          "backgroundColor": "#FFFFFF",
-          "onPress": "open_proposition_7828",
-          "children": [
-            {
-              "id": "prop-1-text",
-              "type": "TextBlock",
-              "text": "Sobre apoio do BNDES a projetos brasileiros em Moçambique",
-              "variant": "body",
-              "color": "#666",
-              "fontSize": 14,
-              "lineHeight": 20
-            }
-          ]
-        },
-        {
-          "id": "spacer-header-1",
-          "type": "Spacer",
-          "size": "medium"
-        },
-
-        {
-          "id": "proposition-2",
-          "type": "Card",
-          "title": "PL 5946/2025",
-          "subtitle": "Projeto de Lei",
-          "elevation": 1,
-          "borderRadius": 12,
-          "padding": 16,
-          "margin": "0 0 8 0",
-          "backgroundColor": "#FFFFFF",
-          "onPress": "open_proposition_5946",
-          "children": [
-            {
-              "id": "prop-2-text",
-              "type": "TextBlock",
-              "text": "Isenção de impostos para equipamentos de combate a incêndios",
-              "variant": "body",
-              "color": "#666",
-              "fontSize": 14,
-              "lineHeight": 20
-            }
-          ]
-        },
-        {
-          "id": "spacer-header-2",
-          "type": "Spacer",
-          "size": "medium"
-        },
-
-        {
-          "id": "proposition-3",
-          "type": "Card",
-          "title": "PL 5945/2025",
-          "subtitle": "Projeto de Lei",
-          "elevation": 1,
-          "borderRadius": 12,
-          "padding": 16,
-          "margin": "0 0 8 0",
-          "backgroundColor": "#FFFFFF",
-          "onPress": "open_proposition_5945",
-          "children": [
-            {
-              "id": "prop-3-text",
-              "type": "TextBlock",
-              "text": "Preservação de proventos para militares estaduais",
-              "variant": "body",
-              "color": "#666",
-              "fontSize": 14,
-              "lineHeight": 20
-            }
-          ]
-        }
-      ]
-    },
-
-    // Espaçamento
-    {
-      "id": "spacer-propositions",
-      "type": "Spacer",
-      "size": "xlarge"
-    },
-
-    // Seção de Estatísticas
-    {
-      "id": "stats-section",
-      "type": "Container",
-      "direction": "column",
-      "spacing": 16,
-      "padding": "0 20",
-      "children": [
-        {
-          "id": "stats-title",
-          "type": "TextBlock",
-          "text": "📊 Estatísticas da Semana",
-          "variant": "headline",
-          "color": "#1a1a1a",
-          "fontSize": 20,
-          "fontWeight": "600",
-          "style": { "marginBottom": 8 }
-        },
-
-        // Grid de estatísticas
-        {
-          "id": "stats-grid",
-          "type": "Container",
-          "direction": "row",
-          "spacing": 16,
-          "wrap": true,
-          "children": [
-            {
-              "id": "stat-1",
-              "type": "Card",
-              "elevation": 1,
-              "borderRadius": 12,
-              "padding": 16,
-              "margin": "0 0 8 0",
-              "backgroundColor": "#FFF3CD",
-              "style": { "flex": 1, "minWidth": 140 },
-              "children": [
-                {
-                  "id": "stat-1-number",
-                  "type": "TextBlock",
-                  "text": "5",
-                  "variant": "display",
-                  "color": "#0000",
-                  "fontSize": 32,
-                  "fontWeight": "700",
-                  "textAlign": "center"
-                },
-                {
-                  "id": "stat-1-label",
-                  "type": "TextBlock",
-                  "text": "Novas Proposições",
-                  "variant": "caption",
-                  "color": "#856404",
-                  "textAlign": "center",
-                  "fontSize": 12,
-                  "fontWeight": "500"
-                }
-              ]
-            },
-            {
-              "id": "spacer-header-3",
-              "type": "Spacer",
-              "size": "medium"
-            },
-            {
-              "id": "stat-2",
-              "type": "Card",
-              "elevation": 1,
-              "borderRadius": 12,
-              "padding": 16,
-              "margin": "0 0 8 0",
-              "backgroundColor": "#D1ECF1",
-              "style": { "flex": 1, "minWidth": 140 },
-              "children": [
-                {
-                  "id": "stat-2-number",
-                  "type": "TextBlock",
-                  "text": "15",
-                  "variant": "display",
-                  "color": "#0C5460",
-                  "fontSize": 32,
-                  "fontWeight": "700",
-                  "textAlign": "center"
-                },
-                {
-                  "id": "stat-2-label",
-                  "type": "TextBlock",
-                  "text": "Em Tramitação",
-                  "variant": "caption",
-                  "color": "#0C5460",
-                  "textAlign": "center",
-                  "fontSize": 12,
-                  "fontWeight": "500"
-                }
-              ]
-            },
-            {
-              "id": "spacer-header-4",
-              "type": "Spacer",
-              "size": "medium"
-            },
-            {
-              "id": "stat-3",
-              "type": "Card",
-              "elevation": 1,
-              "borderRadius": 12,
-              "padding": 16,
-              "margin": "0 0 8 0",
-              "backgroundColor": "#D4EDDA",
-              "style": { "flex": 1, "minWidth": 140 },
-              "children": [
-                {
-                  "id": "stat-3-number",
-                  "type": "TextBlock",
-                  "text": "8",
-                  "variant": "display",
-                  "color": "#155724",
-                  "fontSize": 32,
-                  "fontWeight": "700",
-                  "textAlign": "center"
-                },
-                {
-                  "id": "stat-3-label",
-                  "type": "TextBlock",
-                  "text": "Votações Realizadas",
-                  "variant": "caption",
-                  "color": "#155724",
-                  "textAlign": "center",
-                  "fontSize": 12,
-                  "fontWeight": "500"
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    },
-
-    // Espaçamento final
-    {
-      "id": "spacer-bottom",
-      "type": "Spacer",
-      "size": "large"
-    },
-  ]
-};
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, RefreshControl, Image, TouchableOpacity, FlatList } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import { dataService } from '@/services/dataService';
+import { PoliticianDto, PropositionDto } from '@/types/api';
+import { NavigationProp } from '@/types/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 
 export function HomeScreen() {
-  return <ScreenRenderer screen={mockScreen} />;
+  const navigation = useNavigation<NavigationProp>();
+  const { user } = useAuth();
+  const [followedPoliticians, setFollowedPoliticians] = useState<PoliticianDto[]>([]);
+  const [recentPropositions, setRecentPropositions] = useState<PropositionDto[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchData = async () => {
+    try {
+      const [followedRes, propositionsRes] = await Promise.all([
+        dataService.getFollowedPoliticians({ page: 0, size: 10 }),
+        dataService.getPropositions({ page: 0, size: 5 })
+      ]);
+      setFollowedPoliticians(followedRes.data);
+      setRecentPropositions(propositionsRes.data);
+    } catch (error) {
+      console.error('Error fetching home data:', error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchData();
+  };
+
+  const renderPoliticianItem = ({ item }: { item: PoliticianDto }) => (
+    <TouchableOpacity
+      style={styles.politicianCard}
+      onPress={() => navigation.navigate('Deputados', { deputyId: item.id.toString() })}
+    >
+      <Image source={{ uri: item.photoUrl }} style={styles.politicianPhoto} />
+      <Text style={styles.politicianName} numberOfLines={1}>{item.name}</Text>
+      <Text style={styles.politicianParty}>{item.party}-{item.state}</Text>
+    </TouchableOpacity>
+  );
+
+  const renderPropositionItem = (item: PropositionDto) => (
+    <View key={item.id} style={styles.propositionCard}>
+      <View style={styles.propositionHeader}>
+        <Text style={styles.propositionType}>{item.typeDescription} {item.number}/{item.year}</Text>
+        <Text style={styles.propositionDate}>{new Date(item.presentationDate).toLocaleDateString()}</Text>
+      </View>
+      <Text style={styles.propositionSummary} numberOfLines={3}>{item.summary}</Text>
+    </View>
+  );
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#009C3B" />
+      </View>
+    );
+  }
+
+  return (
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+      >
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.greeting}>Olá, {user?.name || 'Visitante'}</Text>
+            <Text style={styles.subtitle}>Acompanhe seus representantes</Text>
+          </View>
+          <TouchableOpacity onPress={() => navigation.navigate('Configurações')}>
+             <View style={styles.avatarPlaceholder}>
+                <Text style={styles.avatarText}>
+                  {user?.name?.charAt(0).toUpperCase() || 'U'}
+                </Text>
+             </View>
+          </TouchableOpacity>
+        </View>
+
+        {/* Meus Deputados Section */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Meus Deputados</Text>
+            <TouchableOpacity onPress={() => navigation.navigate('Deputados')}>
+              <Text style={styles.seeAllButton}>Ver todos</Text>
+            </TouchableOpacity>
+          </View>
+
+          {followedPoliticians.length > 0 ? (
+            <FlatList
+              horizontal
+              data={followedPoliticians}
+              renderItem={renderPoliticianItem}
+              keyExtractor={(item) => item.id.toString()}
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.horizontalList}
+            />
+          ) : (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyText}>Você ainda não segue nenhum deputado.</Text>
+            </View>
+          )}
+        </View>
+
+        {/* Últimas Propostas Section */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Últimas Propostas</Text>
+            <TouchableOpacity onPress={() => navigation.navigate('Proposições')}>
+              <Text style={styles.seeAllButton}>Ver todas</Text>
+            </TouchableOpacity>
+          </View>
+
+          {recentPropositions.map(renderPropositionItem)}
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#F5F5F5',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  scrollContent: {
+    paddingBottom: 20,
+  },
+  header: {
+    padding: 20,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+    marginBottom: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  greeting: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#333333',
+  },
+  subtitle: {
+    fontSize: 14,
+    color: '#666666',
+    marginTop: 4,
+  },
+  avatarPlaceholder: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#009C3B',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatarText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  section: {
+    marginBottom: 24,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    marginBottom: 12,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333333',
+  },
+  seeAllButton: {
+    fontSize: 14,
+    color: '#009C3B',
+    fontWeight: '600',
+  },
+  horizontalList: {
+    paddingHorizontal: 16,
+  },
+  politicianCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    padding: 12,
+    marginRight: 12,
+    width: 120,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  politicianPhoto: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    marginBottom: 8,
+    backgroundColor: '#E0E0E0',
+  },
+  politicianName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333333',
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  politicianParty: {
+    fontSize: 12,
+    color: '#666666',
+    textAlign: 'center',
+  },
+  propositionCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    padding: 16,
+    marginHorizontal: 16,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  propositionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  propositionDate: {
+    fontSize: 12,
+    color: '#999999',
+  },
+  propositionType: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#009C3B',
+  },
+  propositionSummary: {
+    fontSize: 14,
+    color: '#333333',
+    lineHeight: 20,
+  },
+  emptyState: {
+    padding: 16,
+    alignItems: 'center',
+  },
+  emptyText: {
+    color: '#666666',
+    fontStyle: 'italic',
+  },
+});

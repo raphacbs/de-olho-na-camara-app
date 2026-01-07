@@ -1,9 +1,9 @@
-import { NavigatorScreenParams } from '@react-navigation/native';
+import { NavigatorScreenParams, NavigationProp as RNNavigationProp } from '@react-navigation/native';
 
 export type RootTabParamList = {
   Home: undefined;
-  Deputados: undefined;
-  Propostas: undefined;
+  Deputados: { deputyId?: string; [key: string]: unknown } | undefined;
+  Proposições: { propositionId?: string; [key: string]: unknown } | undefined;
   Votações: undefined;
   Configurações: undefined;
 };
@@ -13,8 +13,5 @@ export type RootStackParamList = {
   // Adicionar outras telas conforme necessário
 };
 
-// Extensão dos tipos do React Navigation
-declare module '@react-navigation/native' {
-  export function useNavigation(): unknown;
-  export function useRoute(): unknown;
-}
+// Tipos para navegação
+export type NavigationProp = RNNavigationProp<RootTabParamList>;
