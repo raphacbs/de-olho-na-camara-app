@@ -36,6 +36,9 @@ tags:
     description: User device management for push notifications
   - name: Sync
     description: Data synchronization endpoints
+  - name: Parties
+    description: Political parties data
+
 paths:
   /api/v1/auth/register:
     post:
@@ -95,11 +98,17 @@ paths:
           description: Partial name search (optional)
         - in: query
           name: party
-          schema: { type: string }
+          schema:
+            type: array
+            items:
+              type: string
           description: Party acronym filter
         - in: query
           name: state
-          schema: { type: string }
+          schema:
+            type: array
+            items:
+              type: string
           description: State acronym filter
       responses:
         '200':
@@ -569,6 +578,18 @@ paths:
         - in: query
           name: size
           schema: { type: integer, default: 20 }
+        - in: query
+          name: voting-id
+          schema: { type: string }
+          description: Filter by voting ID
+        - in: query
+          name: politician-id
+          schema: { type: integer }
+          description: Filter by politician ID
+        - in: query
+          name: only-votes
+          schema: { type: boolean, default: false }
+          description: Return only votings with votes
       responses:
         '200':
           description: Paginated list of votings with their related votes
@@ -576,6 +597,21 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/VotingWithVotesResponseDTO'
+
+  /api/v1/parties:
+    get:
+      tags: [ Parties ]
+      summary: List all political parties
+      operationId: listParties
+      responses:
+        '200':
+          description: List of political parties
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PartyDto'
 
 components:
   securitySchemes:
@@ -670,6 +706,22 @@ components:
         uri:
           type: string
           example: https://dadosabertos.camara.leg.br/api/v2/deputados/204379
+        photoUrl:
+          type: string
+          example: https://www.camara.leg.br/internet/deputado/bandep/204379.jpg
+
+    PoliticianSummaryDto:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 204379
+        name:
+          type: string
+          example: Acácio Favacho
+        party:
+          type: string
+          example: MDB
         photoUrl:
           type: string
           example: https://www.camara.leg.br/internet/deputado/bandep/204379.jpg
@@ -816,8 +868,6 @@ components:
     PropositionDto:
       type: object
       properties:
-        politicianId:
-          type: integer
         id:
           type: integer
         uri:
@@ -885,6 +935,10 @@ components:
           type: string
         status:
           type: object
+        politicians:
+          type: array
+          items:
+            $ref: '#/components/schemas/PoliticianDto'
 
     PropositionResponseDTO:
       type: object
@@ -1033,3 +1087,19 @@ components:
           type: integer
         sizePage:
           type: integer
+
+    PartyDto:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 36899
+        acronym:
+          type: string
+          example: MDB
+        name:
+          type: string
+          example: Movimento Democrático Brasileiro
+        electoralNumber:
+          type: integer
+          example: 15

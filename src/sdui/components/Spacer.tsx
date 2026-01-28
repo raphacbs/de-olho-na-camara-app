@@ -1,6 +1,6 @@
 import React from 'react';
 import { SpacerComponent } from '@/types/sdui';
-import { BaseComponent } from './BaseComponent';
+import { BaseComponent, convertStyleToRN } from './BaseComponent';
 
 const spacerSizes = {
   small: 8,
@@ -14,14 +14,17 @@ export const Spacer: React.FC<SpacerComponent> = ({
   style,
   ...props
 }) => {
-  const spacerSize = typeof size === 'string' ? spacerSizes[size] : size;
+  const spacerSize =
+    typeof size === 'string' && size in spacerSizes
+      ? spacerSizes[size as keyof typeof spacerSizes]
+      : (size as number);
 
   return (
     <BaseComponent
       style={{
         height: spacerSize,
         width: spacerSize,
-        ...style,
+        ...(typeof style === 'object' && style ? convertStyleToRN(style as any) : {}),
       }}
       {...props}
     />

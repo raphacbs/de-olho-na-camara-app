@@ -1,0 +1,1 @@
+export const loadingImage = require('../../assets/fiscaliza-logo.png')

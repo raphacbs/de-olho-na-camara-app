@@ -16,6 +16,9 @@ export interface PoliticianDto {
   email: string;
   uri: string;
   photoUrl: string;
+  expenseTotal: number;
+  propositionsTotal: number;
+  isFollowed: boolean;
 }
 
 export interface ExpenseDto {
@@ -71,7 +74,6 @@ export interface SpeechDto {
 }
 
 export interface PropositionDto {
-  politicianId: number;
   id: number;
   uri: string;
   type: string;
@@ -105,6 +107,7 @@ export interface PropositionDto {
   createdAt: string;
   updatedAt: string;
   status: Record<string, unknown>;
+  politicians: PoliticianDto[];
 }
 
 export interface PresenceDto {
@@ -148,4 +151,24 @@ export interface DeviceRequest {
 export interface SyncResponse {
   message: string;
   status: string;
+}
+
+export interface PartyDto {
+  id: number;
+  acronym: string;
+  name: string;
+  electoralNumber: number;
+}
+
+export interface DashboardStatsDto {
+  totalPropositions: number;
+  totalExpenses: number;
+  totalVotes: number;
+  totalPoliticians: number;
+  totalFollowing: number;
+}
+
+export interface MetricData {
+  key: string;
+  value: string | number;
 }

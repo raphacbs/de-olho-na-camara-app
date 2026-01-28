@@ -1,4 +1,5 @@
 import { NavigatorScreenParams, NavigationProp as RNNavigationProp } from '@react-navigation/native';
+import { PropositionDto } from './api';
 
 export type RootTabParamList = {
   Home: undefined;
@@ -10,8 +11,14 @@ export type RootTabParamList = {
 
 export type RootStackParamList = {
   MainTabs: NavigatorScreenParams<RootTabParamList>;
-  // Adicionar outras telas conforme necessário
+  PoliticianDetails: { id: number };
+  PoliticianPropositions: { politicianId: number };
+  PoliticianExpenses: { politicianId: number };
+  PoliticianVotes: { politicianId: number };
+  DeputadosSeguidos: undefined;
+  PoliticianList: undefined;
+  ProposalDetail: { proposal: PropositionDto };
 };
 
 // Tipos para navegação
-export type NavigationProp = RNNavigationProp<RootTabParamList>;
+export type NavigationProp = RNNavigationProp<RootStackParamList>;

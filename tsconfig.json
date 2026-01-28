@@ -33,6 +33,7 @@
   "include": [
     "**/*.ts",
     "**/*.tsx",
+    "**/*.d.ts",
     ".eslintrc.js",
     "metro.config.js"
   ],

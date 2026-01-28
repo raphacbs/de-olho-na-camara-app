@@ -8,6 +8,7 @@ import { ProposalsScreen } from '@/screens/ProposalsScreen';
 import { VotesScreen } from '@/screens/VotesScreen';
 import { SettingsScreen } from '@/screens/SettingsScreen';
 import { RootTabParamList } from '@/types/navigation';
+import { NewHomeScreen } from '@/screens/NewHomeScreen';
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
@@ -16,7 +17,7 @@ export function RootTabs() {
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#007AFF',
+        tabBarActiveTintColor: '#005A9C',
         tabBarInactiveTintColor: '#8E8E93',
         tabBarStyle: {
           backgroundColor: '#FFFFFF',
@@ -26,7 +27,7 @@ export function RootTabs() {
     >
       <Tab.Screen
         name="Home"
-        component={HomeScreen}
+        component={NewHomeScreen}
         options={{
           title: 'Início',
           tabBarIcon: ({ color, size }) => (

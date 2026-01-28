@@ -93,8 +93,17 @@ export const Button: React.FC<ButtonComponent> = React.memo(({
   }
 
   const handlePress = () => {
-    if (!disabled && !loading && onPress) {
+    if (disabled || loading) return;
+
+    if (typeof onPress === 'string') {
+      // treat as SDUI action id
       handleAction(onPress, actionParams);
+      return;
+    }
+
+    if (typeof onPress === 'function') {
+      onPress();
+      return;
     }
   };
 

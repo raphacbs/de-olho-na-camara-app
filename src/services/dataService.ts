@@ -1,4 +1,4 @@
-import apiClient, { ApiResponse } from './apiClient';
+import apiClient from './apiClient';
 import {
   PaginationResponse,
   PoliticianDto,
@@ -10,13 +10,49 @@ import {
   PoliticianVoteWithPropositionDTO,
   VotingWithVotesDTO,
   DeviceRequest,
-  SyncResponse
+  SyncResponse,
+  PartyDto,
+  DashboardStatsDto,
+  MetricData
 } from '@/types/api';
 
+const isMocked = process.env.EXPO_PUBLIC_MOCK_ENABLED === 'true';
+
 class DataService {
+
+
+  // Home Metrics
+  async getHomeMetrics(year?: number | null): Promise<MetricData[]> {
+    if (isMocked) {
+      // Retorna dados mockados (pode variar por ano se necessário)
+      return [
+        { key: 'activeDeputies', value: 513 },
+        { key: 'following', value: 12 },
+        { key: 'proposals', value: 23456 },
+        { key: 'expenses', value: 'R$ 123M' },
+      ];
+    }
+
+    const params = year ? { year } : undefined;
+    const response = await apiClient.get<DashboardStatsDto>('/api/v1/dashboard/stats', params);
+    const stats = response.data;
+
+    return [
+      { key: 'activeDeputies', value: stats.totalPoliticians },
+      { key: 'following', value: stats.totalFollowing },
+      { key: 'proposals', value: stats.totalPropositions },
+      { key: 'expenses', value: stats.totalExpenses },
+    ];
+  }
+
   // Politicians
-  async getPoliticians(params: { page?: number; size?: number; name?: string; party?: string; state?: string }): Promise<PaginationResponse<PoliticianDto>> {
-    const response = await apiClient.get<PaginationResponse<PoliticianDto>>('/api/v1/politicians', params);
+  async getPoliticians(params: { page?: number; size?: number; name?: string; party?: string; state?: string; isFollowed?: boolean }): Promise<PaginationResponse<PoliticianDto>> {
+    const defaultParams = { page: 0, size: 10 };
+    const mergedParams = { ...defaultParams, ...params };
+    const filteredParams = Object.fromEntries(
+      Object.entries(mergedParams).filter(([_, v]) => v !== undefined && v !== null && !(typeof v === 'string' && v === ''))
+    );
+    const response = await apiClient.get<PaginationResponse<PoliticianDto>>('/api/v1/politicians', filteredParams);
     return response.data;
   }
 
@@ -26,8 +62,13 @@ class DataService {
   }
 
   // Followed
-  async getFollowedPoliticians(params: { page?: number; size?: number }): Promise<PaginationResponse<PoliticianDto>> {
-    const response = await apiClient.get<PaginationResponse<PoliticianDto>>('/api/v1/followed', params);
+  async getFollowedPoliticians(params: { page?: number; size?: number; name?: string; party?: string[]; state?: string[] }): Promise<PaginationResponse<PoliticianDto>> {
+    const defaultParams = { page: 0, size: 10 };
+    const mergedParams = { ...defaultParams, ...params };
+    const filteredParams = Object.fromEntries(
+      Object.entries({ ...mergedParams, isFollowed: true }).filter(([_, v]) => v !== undefined && v !== null && !(typeof v === 'string' && v === ''))
+    );
+    const response = await apiClient.get<PaginationResponse<PoliticianDto>>('/api/v1/politicians', filteredParams);
     return response.data;
   }
 
@@ -41,29 +82,54 @@ class DataService {
 
   // Expenses
   async getPoliticianExpenses(id: number, params: { page?: number; size?: number; year?: number; month?: number }): Promise<ExpenseResponseDTO> {
-    const response = await apiClient.get<ExpenseResponseDTO>(`/api/v1/politicians/${id}/expenses`, params);
+    const defaultParams = { page: 0, size: 10 };
+    const mergedParams = { ...defaultParams, ...params };
+    const filteredParams = Object.fromEntries(
+      Object.entries(mergedParams).filter(([_, v]) => v !== undefined && v !== null && !(typeof v === 'string' && v === ''))
+    );
+    const response = await apiClient.get<ExpenseResponseDTO>(`/api/v1/politicians/${id}/expenses`, filteredParams);
     return response.data;
   }
 
   // Votes
   async getPoliticianVotes(id: number, params: { page?: number; size?: number }): Promise<PaginationResponse<PoliticianVoteDto>> {
-    const response = await apiClient.get<PaginationResponse<PoliticianVoteDto>>(`/api/v1/politicians/${id}/votes`, params);
+    const defaultParams = { page: 0, size: 10 };
+    const mergedParams = { ...defaultParams, ...params };
+    const filteredParams = Object.fromEntries(
+      Object.entries(mergedParams).filter(([_, v]) => v !== undefined && v !== null && !(typeof v === 'string' && v === ''))
+    );
+    const response = await apiClient.get<PaginationResponse<PoliticianVoteDto>>(`/api/v1/politicians/${id}/votes`, filteredParams);
     return response.data;
   }
 
   async getPoliticianVotesWithProposition(id: number, params: { page?: number; size?: number }): Promise<PaginationResponse<PoliticianVoteWithPropositionDTO>> {
-    const response = await apiClient.get<PaginationResponse<PoliticianVoteWithPropositionDTO>>(`/api/v1/politicians/${id}/votes-with-proposition`, params);
+    const defaultParams = { page: 0, size: 10 };
+    const mergedParams = { ...defaultParams, ...params };
+    const filteredParams = Object.fromEntries(
+      Object.entries(mergedParams).filter(([_, v]) => v !== undefined && v !== null && !(typeof v === 'string' && v === ''))
+    );
+    const response = await apiClient.get<PaginationResponse<PoliticianVoteWithPropositionDTO>>(`/api/v1/politicians/${id}/votes`, filteredParams);
     return response.data;
   }
 
   async getVotingsWithVotes(params: { page?: number; size?: number }): Promise<PaginationResponse<VotingWithVotesDTO>> {
-    const response = await apiClient.get<PaginationResponse<VotingWithVotesDTO>>('/api/v1/votings-with-votes', params);
+    const defaultParams = { page: 0, size: 10 };
+    const mergedParams = { ...defaultParams, ...params };
+    const filteredParams = Object.fromEntries(
+      Object.entries(mergedParams).filter(([_, v]) => v !== undefined && v !== null && !(typeof v === 'string' && v === ''))
+    );
+    const response = await apiClient.get<PaginationResponse<VotingWithVotesDTO>>('/api/v1/votings-with-votes', filteredParams);
     return response.data;
   }
 
   // Speeches
   async getPoliticianSpeeches(id: number, params: { page?: number; size?: number }): Promise<PaginationResponse<SpeechDto>> {
-    const response = await apiClient.get<PaginationResponse<SpeechDto>>(`/api/v1/politicians/${id}/speeches`, params);
+    const defaultParams = { page: 0, size: 10 };
+    const mergedParams = { ...defaultParams, ...params };
+    const filteredParams = Object.fromEntries(
+      Object.entries(mergedParams).filter(([_, v]) => v !== undefined && v !== null && !(typeof v === 'string' && v === ''))
+    );
+    const response = await apiClient.get<PaginationResponse<SpeechDto>>(`/api/v1/politicians/${id}/speeches`, filteredParams);
     return response.data;
   }
 
@@ -71,28 +137,53 @@ class DataService {
   async getPropositions(params: {
     page?: number;
     size?: number;
-    politicianId?: string;
+    politicianId?: number;
     types?: string[];
     statuses?: string[];
     startDate?: string;
     endDate?: string;
   }): Promise<PaginationResponse<PropositionDto>> {
-    const response = await apiClient.get<PaginationResponse<PropositionDto>>('/api/v1/propositions', params);
+    const defaultParams = { page: 0, size: 10 };
+    const mergedParams = { ...defaultParams, ...params };
+    const filteredParams = Object.fromEntries(
+      Object.entries(mergedParams).filter(([_, v]) => v !== undefined && v !== null && !(typeof v === 'string' && v === ''))
+    );
+    const response = await apiClient.get<PaginationResponse<PropositionDto>>('/api/v1/propositions', filteredParams);
     return response.data;
   }
 
   async getPoliticianPropositions(id: number, params: { page?: number; size?: number; year?: number }): Promise<PaginationResponse<PropositionDto>> {
-    const response = await apiClient.get<PaginationResponse<PropositionDto>>(`/api/v1/politicians/${id}/propositions`, params);
+    const defaultParams = { page: 0, size: 10 };
+    const mergedParams = { ...defaultParams, ...params };
+    const filteredParams = Object.fromEntries(
+      Object.entries(mergedParams).filter(([_, v]) => v !== undefined && v !== null && !(typeof v === 'string' && v === ''))
+    );
+    const response = await apiClient.get<PaginationResponse<PropositionDto>>(`/api/v1/politicians/${id}/propositions`, filteredParams);
     return response.data;
   }
 
   // Presence
   async getPoliticianPresence(id: number, params: { page?: number; size?: number }): Promise<PaginationResponse<PresenceDto>> {
-    const response = await apiClient.get<PaginationResponse<PresenceDto>>(`/api/v1/politicians/${id}/presence`, params);
+    const defaultParams = { page: 0, size: 10 };
+    const mergedParams = { ...defaultParams, ...params };
+    const filteredParams = Object.fromEntries(
+      Object.entries(mergedParams).filter(([_, v]) => v !== undefined && v !== null && !(typeof v === 'string' && v === ''))
+    );
+    const response = await apiClient.get<PaginationResponse<PresenceDto>>(`/api/v1/politicians/${id}/presence`, filteredParams);
     return response.data;
   }
 
+  // Parties
+  async getParties(): Promise<PartyDto[]> {
+    const response = await apiClient.get<PartyDto[]>('/api/v1/parties');
+    return response.data;
+  }
 
+  // Dashboard
+  async getDashboardStats(): Promise<DashboardStatsDto> {
+    const response = await apiClient.get<DashboardStatsDto>('/api/v1/dashboard/stats');
+    return response.data;
+  }
 
   // Devices
   async registerDevice(data: DeviceRequest): Promise<void> {
@@ -100,7 +191,7 @@ class DataService {
   }
 
   async unregisterDevice(fcmToken: string): Promise<void> {
-    await apiClient.delete('/api/v1/devices', { fcmToken });
+    await apiClient.delete('/api/v1/devices', { params: { fcmToken } });
   }
 
   // Sync

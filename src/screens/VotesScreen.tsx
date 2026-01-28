@@ -3,6 +3,7 @@ import { View, Text, FlatList, StyleSheet, ActivityIndicator, RefreshControl } f
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { dataService } from '@/services/dataService';
 import { VotingWithVotesDTO } from '@/types/api';
+import FiscalizaLoading from "@/components/FiscalizaLoading";
 
 export function VotesScreen() {
   const [votings, setVotings] = useState<VotingWithVotesDTO[]>([]);
@@ -10,12 +11,21 @@ export function VotesScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchVotings = async (pageNumber: number, shouldRefresh = false) => {
     if (!hasMore && !shouldRefresh) return;
 
     try {
+      setError(null);
       const response = await dataService.getVotingsWithVotes({ page: pageNumber, size: 20 });
+
+      console.log(`✅ Resposta recebida:`, {
+        dataLength: response.data.length,
+        total: response.total,
+        page: response.page,
+        totalPages: response.totalPages,
+      });
 
       if (shouldRefresh) {
         setVotings(response.data);
@@ -26,7 +36,8 @@ export function VotesScreen() {
       setHasMore(response.page < response.totalPages - 1);
       setPage(pageNumber);
     } catch (error) {
-      console.error('Error fetching votings:', error);
+      console.error('❌ Erro ao buscar votações:', error);
+      setError(error instanceof Error ? error.message : 'Erro desconhecido');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -38,21 +49,30 @@ export function VotesScreen() {
   }, []);
 
   const onRefresh = () => {
-    setRefreshing(true);
+    console.log('🔄 Refresh solicitado');
     setHasMore(true);
     fetchVotings(0, true);
   };
 
   const loadMore = () => {
     if (!loading && hasMore) {
-      fetchVotings(page + 1);
+      console.log(`📖 Load more: page=${page}`);
+      void fetchVotings(page + 1);
     }
   };
 
-  if (loading && page === 0) {
+  console.log(`🎨 Renderizando: loading=${loading}, votings.length=${votings.length}, error=${error}`);
+
+  if (loading && votings.length === 0) {
+    return (
+        <FiscalizaLoading message="Carregando..." />
+    );
+  }
+
+  if (error) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#009C3B" />
+        <Text style={styles.errorText}>Erro: {error}</Text>
       </View>
     );
   }
@@ -95,6 +115,16 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: '#666666',
+  },
+  errorText: {
+    fontSize: 18,
+    color: '#FF3B30',
+    fontWeight: '600',
   },
   header: {
     padding: 16,

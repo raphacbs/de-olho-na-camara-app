@@ -1,7 +1,7 @@
 import React from 'react';
-import { Text, TouchableOpacity, Platform } from 'react-native';
-import { CardComponent, ComponentStyle } from '@/types/sdui';
-import { BaseComponent } from './BaseComponent';
+import { Text, TouchableOpacity, Platform, ViewStyle } from 'react-native';
+import { CardComponent } from '@/types/sdui';
+import { BaseComponent, convertStyleToRN } from './BaseComponent';
 import { useSDUIActionsContext } from '../SDUIActionsContext';
 
 export const Card: React.FC<CardComponent & { children?: React.ReactNode }> = ({
@@ -22,12 +22,12 @@ export const Card: React.FC<CardComponent & { children?: React.ReactNode }> = ({
 }) => {
   const { handleAction } = useSDUIActionsContext();
   // Estilo base do card
-  const cardStyle: ComponentStyle = {
+  const cardStyle: ViewStyle = {
     backgroundColor,
     borderRadius,
     padding,
     margin,
-    ...style,
+    ...convertStyleToRN(style),
   };
 
   // Adicionar sombra/elevação
@@ -84,7 +84,11 @@ export const Card: React.FC<CardComponent & { children?: React.ReactNode }> = ({
         }}
         activeOpacity={0.8}
         onPress={() => {
-          handleAction(onPress, actionParams);
+          if (typeof onPress === 'string') {
+            handleAction(onPress, actionParams);
+          } else if (typeof onPress === 'function') {
+            onPress();
+          }
         }}
       >
         <CardContent />

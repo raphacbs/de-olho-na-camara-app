@@ -1,10 +1,10 @@
 import React from 'react';
 import { View, ViewStyle } from 'react-native';
-import { BaseComponent as BaseComponentType, ComponentStyle } from '@/types/sdui';
+import { ComponentStyle } from '@/types/sdui';
 
 interface BaseComponentProps {
-  id: string;
-  type: string;
+  id?: string;
+  type?: string;
   style?: ComponentStyle | ViewStyle;
   children?: React.ReactNode;
 }
