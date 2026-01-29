@@ -25,8 +25,14 @@ export function ProposalDetailScreen() {
   };
 
   const handlePoliticianPress = (politician: PoliticianDto) => {
-    // @ts-ignore
-    navigation.navigate('PoliticianDetails', { id: politician.id });
+    const numeric = politician && politician.id !== undefined && politician.id !== null ? Number(politician.id) : undefined;
+    if (typeof numeric === 'number' && !Number.isNaN(numeric)) {
+      // @ts-ignore
+      navigation.navigate('PoliticianDetails', { id: numeric });
+    } else {
+      // eslint-disable-next-line no-console
+      console.warn('[ProposalDetailScreen] invalid politician id, not navigating', politician);
+    }
   };
 
   const uniqueAuthors = useMemo(() => {

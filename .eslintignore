@@ -1,0 +1,8 @@
+# Ignore scripts and test helpers that are not part of the TS project
+scripts/
+test-*.js
+test-*.ts
+*.log
+node_modules/
+.expo/
+**/*.min.js

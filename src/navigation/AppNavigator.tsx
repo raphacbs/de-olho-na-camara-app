@@ -11,7 +11,7 @@ import {PoliticianExpensesScreen} from '@/screens/PoliticianExpensesScreen';
 import {DeputadosSeguidosScreen} from '@/screens/DeputadosSeguidosScreen';
 import {ProposalDetailScreen} from '@/screens/ProposalDetailScreen';
 import {PoliticianVotesScreen} from '@/screens/PoliticianVotesScreen';
-import {DeputadosScreen} from "@/screens/DeputadosScreen";
+import DeputadosScreen from "@/screens/DeputadosScreen";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -81,16 +81,15 @@ export function AppNavigator() {
                     title: 'Deputados Seguidos',
                 }}
             />
-            <Stack.Navigator>
-                <Stack.Screen
-                    name="PoliticianList"
-                    component={DeputadosScreen}
-                    options={{
-                        headerShown: true,
-                        title: 'Deputados',
-                    }}
-                />
-            </Stack.Navigator>
+            <Stack.Screen
+                name="PoliticianList"
+                // render via children to avoid potential undefined component at module init
+                children={() => <DeputadosScreen />}
+                options={{
+                    headerShown: true,
+                    title: 'Deputados',
+                }}
+            />
             <Stack.Screen
                 name="ProposalDetail"
                 component={ProposalDetailScreen}

@@ -9,15 +9,25 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
-export function PoliticianDetailsScreen() {
-  const route = useRoute<{ id: number }>();
+export function PoliticianDetailsScreen(props?: any) {
+  // Support two calling styles:
+  // 1) regular screens via react-navigation: use our useRoute() shim
+  // 2) directly rendered by expo-router files that pass a `route` prop (see app/politician/[id].tsx)
+  const routeFromHook = useRoute<{ id?: number | string }>();
   const navigation = useNavigation<NavigationProp>();
   const queryClient = useQueryClient();
-  const { id } = route.params;
+
+  // Normalize id: prefer explicit prop route (props.route), then hook route, then fallback to undefined
+  const rawId = (props && props.route && props.route.params && props.route.params.id) ?? (routeFromHook && (routeFromHook as any).params && (routeFromHook as any).params.id) ?? undefined;
+  const id = rawId === undefined || rawId === null ? undefined : Number(rawId);
+
+  // If id is invalid (undefined or NaN), show an error UI instead of calling the API with 'undefined'
+  const isIdValid = typeof id === 'number' && !Number.isNaN(id);
 
   const { data: politician, isLoading: isLoadingPolitician, isError } = useQuery({
     queryKey: ['politician', id],
-    queryFn: () => dataService.getPoliticianById(id),
+    queryFn: () => dataService.getPoliticianById(id as number),
+    enabled: isIdValid,
   });
 
   const { data: isFollowing, isLoading: isLoadingIsFollowing } = useQuery({
@@ -26,10 +36,12 @@ export function PoliticianDetailsScreen() {
       const followed = await dataService.getFollowedPoliticians({ page: 0, size: 1000 });
       return followed.data.some(p => p.id === id);
     },
+    enabled: isIdValid,
   });
 
   const { mutate: toggleFollow, isPending: isFollowLoading } = useMutation({
     mutationFn: async () => {
+      if (!isIdValid) throw new Error('Invalid politician id');
       if (isFollowing) {
         await dataService.unfollowPolitician(id);
       } else {
@@ -65,7 +77,19 @@ export function PoliticianDetailsScreen() {
     );
   }
 
-  const isLoading = isLoadingPolitician || isLoadingIsFollowing;
+  const isLoading = (isIdValid && (isLoadingPolitician || isLoadingIsFollowing)) || false;
+
+  // If id is invalid, show friendly error and a back button
+  if (!isIdValid) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text>Identificador do deputado inválido.</Text>
+        <TouchableOpacity onPress={() => navigation?.goBack && (navigation.goBack as any)()} style={{ marginTop: 12 }}>
+          <Text style={{ color: '#009C3B' }}>Voltar</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   if (isLoading) {
     return (

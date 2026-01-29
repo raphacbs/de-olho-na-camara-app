@@ -39,7 +39,7 @@ export function DeputadosSeguidosScreen() {
     queryKey: ['followedPoliticians', debouncedSearchQuery, appliedFilters],
     queryFn: async ({ pageParam = 0 }) => {
       return dataService.getFollowedPoliticians({
-        page: pageParam as number,
+        page: pageParam,
         size: 20,
         name: debouncedSearchQuery || undefined,
         state: appliedFilters.states,
@@ -87,7 +87,13 @@ export function DeputadosSeguidosScreen() {
   };
 
   const handlePoliticianPress = (id: number) => {
-    navigation.navigate('PoliticianDetails', { id });
+    const numeric = id === undefined || id === null ? undefined : Number(id);
+    if (typeof numeric === 'number' && !Number.isNaN(numeric)) {
+      navigation.navigate('PoliticianDetails', { id: numeric });
+    } else {
+      // eslint-disable-next-line no-console
+      console.warn('[DeputadosSeguidosScreen] invalid politician id, not navigating', id);
+    }
   };
 
   const handleApplyFilters = () => {

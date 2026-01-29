@@ -1,9 +1,21 @@
 // Minimal navigation shim to provide a subset of react-navigation hooks using expo-router.
 // This keeps most existing screens working with minimal changes.
 
-// @ts-ignore
-import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useCallback } from 'react';
+
+// Try to import expo-router hooks; they may exist in some runtime modes
+let _useExpoRouter: any = null;
+let _useExpoLocalSearchParams: any = null;
+try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const expoRouter = require('expo-router');
+  _useExpoRouter = expoRouter.useRouter;
+  _useExpoLocalSearchParams = expoRouter.useLocalSearchParams;
+} catch (e) {
+  // expo-router not available or not initialized — we'll fallback to react-navigation below
+}
+
+import { useNavigation as useRNNavigation, useRoute as useRNRoute } from '@react-navigation/native';
 
 // Generic RouteProp mimicking @react-navigation/native's type shape for our simple use.
 export type RouteProp<T extends Record<string, any> = any, K extends keyof T = keyof T> = {
@@ -13,68 +25,140 @@ export type RouteProp<T extends Record<string, any> = any, K extends keyof T = k
 export type NavigationProp = any;
 
 export function useNavigation<T = any>() {
-  const router = useRouter();
+  // Prefer expo-router if available and initialized; otherwise fallback to react-navigation
+  const router = _useExpoRouter ? _useExpoRouter() : null;
+  const rnNav = useRNNavigation<any>();
 
   const navigate = useCallback((name: string, params?: any) => {
-    if (name === 'PoliticianDetails' && params?.id) {
-      router.push(`/politician/${params.id}`);
-      return;
-    }
-    if (name === 'PoliticianPropositions' && params?.politicianId) {
-      router.push(`/politician/${params.politicianId}/propositions`);
-      return;
-    }
-    if (name === 'PoliticianExpenses' && params?.politicianId) {
-      router.push(`/politician/${params.politicianId}/expenses`);
-      return;
-    }
-    if (name === 'PoliticianVotes' && params?.politicianId) {
-      router.push(`/politician/${params.politicianId}/votes`);
-      return;
-    }
-    if (name === 'DeputadosSeguidos' || name === 'DeputadosSeguidosScreen') {
-      router.push('/deputados-seguidos');
-      return;
-    }
-    if (name === 'PoliticianList' || name === 'PoliticianListScreen') {
-      router.push('/politician-list');
-      return;
-    }
-    if (name === 'ProposalDetail' && params?.proposal) {
-      const serialized = encodeURIComponent(JSON.stringify(params.proposal));
-      router.push(`/proposal?proposal=${serialized}`);
-      return;
+    // Prefer React Navigation when available, fallback to expo-router
+    if (rnNav && typeof rnNav.navigate === 'function') {
+      try {
+        // Verbose debug: log backend choice, params and short stack to trace caller
+        const stack = new Error().stack?.split('\n').slice(2, 6).map(s => s.trim());
+        // eslint-disable-next-line no-console
+        console.debug('[routerShim] navigate via react-navigation', { name, params, stack });
+        rnNav.navigate(name as any, params);
+        return;
+      } catch (e) {
+        // If RN navigate fails, try expo-router below
+        // eslint-disable-next-line no-console
+        console.warn('[routerShim] react-navigation navigate failed, trying expo-router', e, { name, params });
+      }
     }
 
-    // If caller passed a path-like name starting with '/', push directly
-    if (typeof name === 'string' && name.startsWith('/')) {
-      router.push(name);
-      return;
+    // Try expo-router as fallback
+    if (router && typeof router.push === 'function') {
+      try {
+        // Verbose debug: build and log final path that will be pushed and short stack
+        const stack = new Error().stack?.split('\n').slice(2, 6).map(s => s.trim());
+        // eslint-disable-next-line no-console
+        console.debug('[routerShim] navigate via expo-router (attempt)', { name, params, stack });
+        if (name === 'PoliticianDetails' && params?.id) {
+          const path = `/politician/${params.id}`;
+          // eslint-disable-next-line no-console
+          console.debug('[routerShim] expo-router push path', path);
+          router.push(path);
+          return;
+        }
+        if (name === 'PoliticianPropositions' && params?.politicianId) {
+          const path = `/politician/${params.politicianId}/propositions`;
+          // eslint-disable-next-line no-console
+          console.debug('[routerShim] expo-router push path', path);
+          router.push(path);
+          return;
+        }
+        if (name === 'PoliticianExpenses' && params?.politicianId) {
+          const path = `/politician/${params.politicianId}/expenses`;
+          // eslint-disable-next-line no-console
+          console.debug('[routerShim] expo-router push path', path);
+          router.push(path);
+          return;
+        }
+        if (name === 'PoliticianVotes' && params?.politicianId) {
+          const path = `/politician/${params.politicianId}/votes`;
+          // eslint-disable-next-line no-console
+          console.debug('[routerShim] expo-router push path', path);
+          router.push(path);
+          return;
+        }
+        if (name === 'DeputadosSeguidos' || name === 'DeputadosSeguidosScreen') {
+          router.push('/deputados-seguidos');
+          return;
+        }
+        if (name === 'PoliticianList' || name === 'PoliticianListScreen') {
+          router.push('/politician-list');
+          return;
+        }
+        if (name === 'ProposalDetail' && params?.proposal) {
+          const serialized = encodeURIComponent(JSON.stringify(params.proposal));
+          router.push(`/proposal?proposal=${serialized}`);
+          return;
+        }
+
+        // If caller passed a path-like name starting with '/', push directly
+        if (typeof name === 'string' && name.startsWith('/')) {
+          router.push(name);
+          return;
+        }
+
+        // Fallback: try to push by converting name to a path-friendly string
+        const path = `/${name}`.toLowerCase();
+        // eslint-disable-next-line no-console
+        console.debug('[routerShim] expo-router fallback path', path);
+        router.push(path);
+        return;
+      } catch (e) {
+        // expo-router may not be fully initialized (isReady) — nothing else to try
+        // eslint-disable-next-line no-console
+        console.warn('[routerShim] expo-router navigation failed', e, { name, params });
+      }
     }
 
-    // Fallback: try to push by converting name to a path-friendly string
-    try {
-      const path = `/${name}`.toLowerCase();
-      router.push(path);
-    } catch (e) {
-      console.warn('navigate fallback failed for', name, params, e);
-    }
-  }, [router]);
+    // eslint-disable-next-line no-console
+    console.warn('[routerShim] navigate fallback failed for', name, params);
+  }, [router, rnNav]);
 
   const replace = useCallback((path: string) => {
-    router.replace(path);
-  }, [router]);
+    if (router && typeof router.replace === 'function') {
+      try {
+        router.replace(path);
+        return;
+      } catch (e) {
+        console.warn('expo-router replace failed, falling back', e);
+      }
+    }
+    if (rnNav && typeof rnNav.replace === 'function') {
+      // react-navigation's replace expects a route name; cast to any
+      rnNav.replace(path as any);
+      return;
+    }
+  }, [router, rnNav]);
 
   const goBack = useCallback(() => {
-    router.back();
-  }, [router]);
+    if (router && typeof router.back === 'function') {
+      try {
+        router.back();
+        return;
+      } catch (e) {
+        console.warn('expo-router back failed, falling back', e);
+      }
+    }
+    if (rnNav && typeof rnNav.goBack === 'function') {
+      rnNav.goBack();
+    }
+  }, [router, rnNav]);
 
-  // Provide a simple getState that mimics react-navigation shape for minimal uses
   const getState = useCallback(() => {
+    if (rnNav && typeof rnNav.getState === 'function') {
+      try {
+        return rnNav.getState();
+      } catch (e) {
+        // ignore
+      }
+    }
     return { routes: [{ name: '(tabs)/home' }], index: 0 };
-  }, []);
+  }, [rnNav]);
 
-  // Return a navigation-like object; cast to generic T so callers can keep their typing
   return ({ navigate, replace, goBack, getState } as unknown) as T & {
     navigate: (name: string, params?: any) => void;
     replace: (path: string) => void;
@@ -84,9 +168,25 @@ export function useNavigation<T = any>() {
 }
 
 export function useRoute<T = Record<string, any>>() {
-  // @ts-ignore
-  const params = useLocalSearchParams<T>();
-  return { params } as { params: T };
+  // Prefer react-navigation route params when present (this covers RN navigation flows).
+  // If none are present, try expo-router's local search params as a fallback.
+  const rnRoute = useRNRoute();
+  if (rnRoute && rnRoute.params && Object.keys(rnRoute.params).length > 0) {
+    return { params: rnRoute.params as T };
+  }
+
+  if (_useExpoLocalSearchParams) {
+    try {
+      // @ts-ignore
+      const params = _useExpoLocalSearchParams<T>();
+      return { params } as { params: T };
+    } catch (e) {
+      // continue to final fallback
+    }
+  }
+
+  return { params: (rnRoute?.params ?? {}) as T };
 }
 
 export default {} as any;
+

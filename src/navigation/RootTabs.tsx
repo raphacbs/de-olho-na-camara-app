@@ -1,9 +1,7 @@
-
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
-import { HomeScreen } from '@/screens/HomeScreen';
-import { DeputadosScreen } from '@/screens/DeputadosScreen';
+import DeputadosScreen from '@/screens/DeputadosScreen';
 import { ProposalsScreen } from '@/screens/ProposalsScreen';
 import { VotesScreen } from '@/screens/VotesScreen';
 import { SettingsScreen } from '@/screens/SettingsScreen';
@@ -37,7 +35,8 @@ export function RootTabs() {
       />
       <Tab.Screen
         name="Deputados"
-        component={DeputadosScreen}
+        // render via children to avoid potential undefined component at module init
+        children={() => <DeputadosScreen />}
         options={{
           title: 'Deputados(as)',
           tabBarIcon: ({ color, size }) => (

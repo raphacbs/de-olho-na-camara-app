@@ -97,7 +97,7 @@ function normalizeBFFResponse(response: SDUIResponse): SDUIResponse {
 
   const result: SDUIResponse = {
     screen: {
-      id: screen.id as string,
+      id: screen.id,
       title: typeof screen.title === 'string' ? screen.title : undefined,
       components: screen.components as SDUIScreen['components'],
       navigation: typeof screen.navigation === 'object' && screen.navigation !== null

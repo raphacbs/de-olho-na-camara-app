@@ -105,7 +105,7 @@ export function ProposalsScreen() {
     queryKey: ['propositions', appliedFilters],
     queryFn: async ({ pageParam = 0 }) => {
       const params = {
-        page: pageParam as number,
+        page: pageParam,
         size: 10,
         politicianId: appliedFilters.politicianId,
         types: appliedFilters.types.length > 0 ? appliedFilters.types : undefined,

@@ -25,7 +25,18 @@ export function HomeScreen() {
   const navigation = useNavigation<NavigationProp>();
   const { user } = useAuth();
 
-  const { 
+  // Safe navigate helper to ensure we have a valid numeric id
+  const safeNavigateToPolitician = (id?: number | string) => {
+    const numeric = id === undefined || id === null ? undefined : Number(id);
+    if (typeof numeric === 'number' && !Number.isNaN(numeric)) {
+      navigation.navigate('PoliticianDetails', { id: numeric });
+    } else {
+      // eslint-disable-next-line no-console
+      console.warn('[HomeScreen] invalid politician id, not navigating', id);
+    }
+  };
+
+  const {
     data: followedRes, 
     isLoading: isLoadingFollowed, 
     isRefetching: isRefetchingFollowed,
@@ -52,7 +63,7 @@ export function HomeScreen() {
   const renderStoryItem = ({ item }: { item: PoliticianDto }) => (
     <TouchableOpacity
       style={styles.story}
-      onPress={() => navigation.navigate('PoliticianDetails', { id: item.id })}
+      onPress={() => safeNavigateToPolitician(item.id)}
     >
       <View style={styles.storyImageContainer}>
         <Image source={{ uri: item.photoUrl }} style={styles.storyImage} />

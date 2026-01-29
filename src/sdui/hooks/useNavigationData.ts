@@ -14,7 +14,7 @@ export function useNavigationData<P extends Record<string, any> = Record<string,
   // Função auxiliar para obter um parâmetro específico com tipagem baseada em P
   const getParam = <K extends keyof P>(key: K, defaultValue?: P[K]): P[K] | undefined => {
     const params = getRouteParams();
-    return (params as P)[key] ?? defaultValue;
+    return (params)[key] ?? defaultValue;
   };
 
   return {

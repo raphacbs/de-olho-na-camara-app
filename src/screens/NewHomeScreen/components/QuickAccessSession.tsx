@@ -11,22 +11,24 @@ export const QuickAccessSession = () => {
     {
       label: 'Proposições',
       icon: <FileText size={24} color="#2F6FED" />,
-      route: 'ProposalsScreen',
+      // Navigate to tab: MainTabs -> 'Proposições'
+      route: { name: 'MainTabs', params: { screen: 'Proposições' } },
     },
     {
       label: 'Votações',
       icon: <CheckSquare size={24} color="#2F6FED" />,
-      route: 'VotesScreen',
+      route: { name: 'MainTabs', params: { screen: 'Votações' } },
     },
     {
       label: 'Deputados',
       icon: <Users size={24} color="#2F6FED" />,
-      route: 'PoliticianList',
+      // PoliticianList is a stack route; navigate to it directly
+      route: { name: 'PoliticianList' },
     },
     {
       label: 'Configurações',
       icon: <Settings size={24} color="#2F6FED" />,
-      route: 'SettingsScreen',
+      route: { name: 'MainTabs', params: { screen: 'Configurações' } },
     },
   ];
 
@@ -38,7 +40,15 @@ export const QuickAccessSession = () => {
           <TouchableOpacity
             key={index}
             style={styles.quickAccessButton}
-            onPress={() => navigation.navigate(item.route)}
+            onPress={() => {
+              const r = item.route as any;
+              if (r && r.name) {
+                navigation.navigate(r.name, r.params);
+              } else {
+                // eslint-disable-next-line no-console
+                console.warn('[QuickAccessSession] invalid route configuration', item);
+              }
+            }}
           >
             <View style={styles.quickAccessIconContainer}>
               {item.icon}

@@ -143,15 +143,43 @@ class ApiClient {
     const { retries = 1, ...axiosConfig } = config;
 
     try {
-      const url = endpoint.startsWith('http') ? endpoint : `${this.baseURL}${endpoint}`;
-      console.log(`📡 Fazendo ${config.method || 'GET'} para: ${url}`);
-      console.log('📋 Headers sendo enviados:', this.axiosInstance.defaults.headers.common);
+      const fullUrl = endpoint.startsWith('http') ? endpoint : `${this.baseURL}${endpoint}`;
 
-      const response: AxiosResponse<T> = await this.axiosInstance.request<T>({
-        url: endpoint,
-        ...axiosConfig,
+      // Verbose request logging
+      // eslint-disable-next-line no-console
+      console.debug('📡 API Request', {
+        method: (axiosConfig.method || 'GET').toString().toUpperCase(),
+        url: fullUrl,
+        params: (axiosConfig as any).params ?? undefined,
+        data: (axiosConfig as any).data ?? undefined,
+        headers: this.axiosInstance.defaults.headers.common,
       });
 
+      // Ensure headers include Content-Type and merge defaults with per-request headers
+      const requestConfig = {
+        url: endpoint,
+        ...axiosConfig,
+        headers: {
+          // Always set application/json by default to avoid missing header
+          'Content-Type': 'application/json',
+          // include defaults (Authorization, Accept, etc.) and allow per-request headers to override
+          ...(this.axiosInstance.defaults.headers.common || {}),
+          ...((axiosConfig as any).headers || {}),
+        },
+      } as any;
+
+      const response: AxiosResponse<T> = await this.axiosInstance.request<T>(requestConfig);
+
+      // Verbose response logging
+      // eslint-disable-next-line no-console
+      console.debug('📨 API Response', {
+        url: response.config?.url ?? fullUrl,
+        method: response.config?.method?.toUpperCase(),
+        status: response.status,
+        data: response.data,
+      });
+
+      // Keep existing success log
       console.log(`📨 Resposta recebida - Status: ${response.status}`);
       console.log('✅ Resposta processada com sucesso');
 
@@ -165,7 +193,9 @@ class ApiClient {
 
       if (axiosError.response) {
         // Erro de resposta do servidor
+        // eslint-disable-next-line no-console
         console.error(`❌ Resposta de erro da API: ${axiosError.response.status}`);
+        // eslint-disable-next-line no-console
         console.error('🔍 Detalhes do erro da API:', axiosError.response.data);
 
         if (axiosError.response.status === 401 && this.onUnauthorized) {
@@ -184,11 +214,17 @@ class ApiClient {
         throw apiError;
       } else if (axiosError.request) {
         // Erro de rede
+        // eslint-disable-next-line no-console
         console.error('💥 Erro na requisição HTTP:', {
           error: axiosError.message,
           isNetworkError: true,
           isTimeout: axiosError.code === 'ECONNABORTED',
+          request: axiosError.request && (axiosError.request).path ? { path: (axiosError.request).path } : undefined,
         });
+
+        // Also log attempted endpoint for debugging
+        // eslint-disable-next-line no-console
+        console.error('💥 Request attempted for endpoint:', endpoint);
 
         if (retries > 0 && axiosError.code === 'ECONNABORTED') {
           console.warn(`🔄 Tentando novamente... (${retries} tentativas restantes)`);
@@ -199,6 +235,7 @@ class ApiClient {
         throw axiosError;
       } else {
         // Erro desconhecido
+        // eslint-disable-next-line no-console
         console.error('💥 Erro desconhecido:', axiosError.message);
         throw axiosError;
       }

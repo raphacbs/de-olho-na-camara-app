@@ -31,7 +31,7 @@ export function Avatar({
   }
 
   // Normalize source: if string => { uri: string }, otherwise pass through (local numeric asset or image source)
-  const imageSource: ImageSourcePropType = typeof source === 'string' ? { uri: source } : (source as ImageSourcePropType);
+  const imageSource: ImageSourcePropType = typeof source === 'string' ? { uri: source } : (source);
 
   // Se tem source (URL ou asset), usa Avatar.Image
   return (

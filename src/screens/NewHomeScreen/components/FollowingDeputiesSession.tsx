@@ -43,6 +43,19 @@ export const FollowingDeputiesSession = () => {
     unfollowMutation.mutate(deputyId);
   };
 
+  // Safe navigate wrapper: ensures navigation.navigate exists before calling
+  const safeNavigate = (name: string, params?: any) => {
+    try {
+      if (navigation && typeof (navigation).navigate === 'function') {
+        navigation.navigate(name as any, params);
+      } else {
+        console.warn('navigation not ready, cannot navigate to', name, params);
+      }
+    } catch (e) {
+      console.warn('navigation call failed for', name, params, e);
+    }
+  };
+
   return (
     <View style={styles.followingDeputiesContainer}>
       <View style={styles.followingDeputiesHeader}>
@@ -57,7 +70,7 @@ export const FollowingDeputiesSession = () => {
       {deputies.map((deputy: PoliticianDto) => (
         <TouchableOpacity
           key={deputy.id}
-          onPress={() => navigation.navigate('PoliticianDetails', { id: deputy.id })}
+          onPress={() => safeNavigate('PoliticianDetails', { id: deputy.id })}
         >
           <DeputiesCard
             name={deputy.name}
@@ -75,7 +88,7 @@ export const FollowingDeputiesSession = () => {
       {totalFollowed > 5 && (
         <TouchableOpacity
           style={localStyles.seeMoreButton}
-          onPress={() => navigation.navigate('DeputadosSeguidosScreen')}
+          onPress={() => safeNavigate('DeputadosSeguidos')}
         >
           <Text style={localStyles.seeMoreText}>Ver mais</Text>
         </TouchableOpacity>
