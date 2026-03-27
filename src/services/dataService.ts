@@ -134,14 +134,32 @@ class DataService {
 
   // ─── SDUI ──────────────────────────────────────────────────────────────────
 
+  /**
+   * Generic SDUI screen fetcher.
+   *
+   * Calls any BFF SDUI endpoint and returns the raw response.
+   * This is the single generic method the rendering engine uses — new SDUI
+   * screens on the BFF side only need a call to this method with their
+   * endpoint, no additional service code required.
+   *
+   * @param endpoint  - BFF endpoint path, e.g. '/api/v1/sdui/home'
+   * @param params    - Optional query params forwarded to the BFF
+   */
+  async getSDUIScreen(
+    endpoint: string,
+    params?: Record<string, string | number | boolean | undefined>,
+  ): Promise<HomeScreenBFFResponse> {
+    const response = await apiClient.get<HomeScreenBFFResponse>(endpoint, params);
+    return response.data;
+  }
+
   /** Fetch the SDUI definition of the home screen from the BFF. */
   async getSDUIHomeScreen(year?: number | null): Promise<HomeScreenBFFResponse> {
     if (isMocked) {
       return mockSDUIHomeScreen;
     }
     const params = year ? { ano: year } : undefined;
-    const response = await apiClient.get<HomeScreenBFFResponse>('/api/v1/sdui/home', params);
-    return response.data;
+    return this.getSDUIScreen('/api/v1/sdui/home', params);
   }
 
   // ─── Home Metrics ──────────────────────────────────────────────────────────
