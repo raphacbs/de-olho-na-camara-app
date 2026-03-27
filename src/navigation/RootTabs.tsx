@@ -9,13 +9,17 @@ import { SettingsScreen } from '@/screens/SettingsScreen';
 import { RootTabParamList } from '@/types/navigation';
 import { NewHomeScreen } from '@/screens/NewHomeScreen';
 import { SDUIHomeScreen } from '@/screens/SDUIHomeScreen';
+import { SDUIDeputadosScreen } from '@/screens/SDUIDeputadosScreen';
+import { SDUIProposalsScreen } from '@/screens/SDUIProposalsScreen';
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
-/** Feature flag: set EXPO_PUBLIC_SDUI_ENABLED=true to use the SDUI home screen. */
+/** Feature flag: set EXPO_PUBLIC_SDUI_ENABLED=true to use the SDUI screens. */
 const isSduiEnabled = process.env.EXPO_PUBLIC_SDUI_ENABLED === 'true';
 
 const HomeScreen = isSduiEnabled ? SDUIHomeScreen : NewHomeScreen;
+const DeputadosTab = isSduiEnabled ? SDUIDeputadosScreen : DeputadosScreen;
+const ProposalsTab = isSduiEnabled ? SDUIProposalsScreen : ProposalsScreen;
 
 export function RootTabs() {
   return (
@@ -42,7 +46,7 @@ export function RootTabs() {
       />
       <Tab.Screen
         name="Deputados"
-        component={DeputadosScreen}
+        component={DeputadosTab}
         options={{
           title: 'Deputados(as)',
           tabBarIcon: ({ color, size }) => (
@@ -52,7 +56,7 @@ export function RootTabs() {
       />
       <Tab.Screen
         name="Proposições"
-        component={ProposalsScreen}
+        component={ProposalsTab}
         options={{
           title: 'Proposições',
           tabBarIcon: ({ color, size }) => (

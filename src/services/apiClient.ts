@@ -5,6 +5,14 @@
 
 import axios, { AxiosInstance, AxiosError, AxiosResponse, AxiosRequestConfig } from 'axios';
 import { getApiConfig } from '@/config/api';
+import {
+  getAppVersion,
+  getAppPlatform,
+  getOSVersion,
+  getDeviceModel,
+  getAppLanguage,
+  getOrCreateDeviceId,
+} from './deviceInfo';
 
 export interface ApiError extends Error {
   status: number;
@@ -59,6 +67,20 @@ class ApiClient {
         return Promise.reject(error);
       }
     );
+
+    // Add device/app context headers used by SDUI endpoints for analytics
+    this.axiosInstance.defaults.headers.common['X-App-Version'] = getAppVersion();
+    this.axiosInstance.defaults.headers.common['X-App-Platform'] = getAppPlatform();
+    this.axiosInstance.defaults.headers.common['X-OS-Version'] = getOSVersion();
+    this.axiosInstance.defaults.headers.common['X-Device-Model'] = getDeviceModel();
+    this.axiosInstance.defaults.headers.common['X-App-Language'] = getAppLanguage();
+    // Device ID is persisted asynchronously; set it once it resolves.
+    // Requests fired immediately after instantiation will be sent without this
+    // header, which is acceptable because the BFF treats it as optional (used
+    // for analytics only).  Subsequent requests will always carry the header.
+    void getOrCreateDeviceId().then(deviceId => {
+      this.axiosInstance.defaults.headers.common['X-Device-Id'] = deviceId;
+    });
 
     console.log('✅ ApiClient inicializado com Axios (cookies gerenciados automaticamente)');
   }

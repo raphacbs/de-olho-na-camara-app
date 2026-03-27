@@ -12,6 +12,14 @@ import {DeputadosSeguidosScreen} from '@/screens/DeputadosSeguidosScreen';
 import {ProposalDetailScreen} from '@/screens/ProposalDetailScreen';
 import {PoliticianVotesScreen} from '@/screens/PoliticianVotesScreen';
 import {DeputadosScreen} from "@/screens/DeputadosScreen";
+import {SDUIProposalDetailScreen} from '@/screens/SDUIProposalDetailScreen';
+import {SDUIPoliticianExpensesScreen} from '@/screens/SDUIPoliticianExpensesScreen';
+
+/** Feature flag: set EXPO_PUBLIC_SDUI_ENABLED=true to use the SDUI screens. */
+const isSduiEnabled = process.env.EXPO_PUBLIC_SDUI_ENABLED === 'true';
+
+const ProposalDetailComponent = isSduiEnabled ? SDUIProposalDetailScreen : ProposalDetailScreen;
+const PoliticianExpensesComponent = isSduiEnabled ? SDUIPoliticianExpensesScreen : PoliticianExpensesScreen;
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -59,7 +67,7 @@ export function AppNavigator() {
             />
             <Stack.Screen
                 name="PoliticianExpenses"
-                component={PoliticianExpensesScreen}
+                component={PoliticianExpensesComponent}
                 options={{
                     headerShown: true,
                     title: 'Despesas do Deputado',
@@ -93,7 +101,7 @@ export function AppNavigator() {
             </Stack.Navigator>
             <Stack.Screen
                 name="ProposalDetail"
-                component={ProposalDetailScreen}
+                component={ProposalDetailComponent}
                 options={{
                     headerShown: true,
                     title: 'Detalhes da Proposta',

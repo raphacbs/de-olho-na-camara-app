@@ -82,7 +82,24 @@ export interface BFFScreenComponent {
     | 'GREETING_HEADER'
     | 'STATS_GRID'
     | 'QUICK_ACCESS_GRID'
-    | 'SECTION_HEADER_WITH_BADGE';
+    | 'SECTION_HEADER_WITH_BADGE'
+    // Add new component types returned by new BFF SDUI endpoints
+    // Politicians screen
+    | 'SEARCH_BAR'
+    | 'FILTER_SECTION'
+    | 'POLITICIAN_CARD_LIST'
+    // Propositions screen
+    | 'PROPOSITION_CARD_LIST'
+    // Proposition detail screen
+    | 'PROPOSITION_DETAIL_HEADER'
+    | 'DETAIL_SECTION'
+    | 'TEXT_LINK_SECTION'
+    | 'AUTHOR_CARD_LIST'
+    // Expenses screen
+    | 'EXPENSE_CARD_LIST';
+  // Note: the ComponentRegistry handles unrecognised type strings gracefully
+  // (shows a dev-only warning and renders nothing), so adding new BFF types
+  // here keeps the union type-safe without sacrificing forward compatibility.
   properties: BFFComponentProperties;
 }
 
