@@ -5,6 +5,96 @@
 import React from 'react';
 import { ImageSourcePropType, StyleProp, ViewStyle, TextStyle, ImageStyle } from 'react-native';
 
+// ─── BFF SDUI types ───────────────────────────────────────────────────────────
+
+/** Action emitted by the BFF (e.g. navigate to a route). */
+export interface BFFComponentAction {
+  type: string;  // e.g. "NAVIGATE"
+  route: string; // e.g. "/politicians"
+}
+
+/** Properties for the YEAR_SELECTOR_BANNER component. */
+export interface YearSelectorBannerProperties {
+  title: string;
+  subtitle: string;
+  selectedYear: number;
+  buttonBackgroundColor: string;
+}
+
+/** Properties for the GREETING_HEADER component. */
+export interface GreetingHeaderProperties {
+  greeting: string;
+  subtitle: string;
+}
+
+/** A single stat card in the stats grid. */
+export interface BFFStatCardItem {
+  id: string;
+  icon: string;
+  value: string;
+  label: string;
+  backgroundColor: string;
+  action?: BFFComponentAction;
+}
+
+/** Properties for the STATS_GRID component. */
+export interface StatsGridProperties {
+  columns: number;
+  items: BFFStatCardItem[];
+}
+
+/** A single item in the quick-access grid. */
+export interface BFFQuickAccessItem {
+  id: string;
+  icon: string;
+  label: string;
+  action?: BFFComponentAction;
+}
+
+/** Properties for the QUICK_ACCESS_GRID component. */
+export interface QuickAccessGridProperties {
+  title: string;
+  columns: number;
+  items: BFFQuickAccessItem[];
+}
+
+/** Properties for the SECTION_HEADER_WITH_BADGE component. */
+export interface SectionHeaderWithBadgeProperties {
+  title: string;
+  badgeCount: number;
+  badgeBackgroundColor: string;
+  action?: BFFComponentAction;
+}
+
+/** Union of all BFF-defined component property shapes. */
+export type BFFComponentProperties =
+  | YearSelectorBannerProperties
+  | GreetingHeaderProperties
+  | StatsGridProperties
+  | QuickAccessGridProperties
+  | SectionHeaderWithBadgeProperties;
+
+/** A single component as returned by the BFF SDUI endpoint. */
+export interface BFFScreenComponent {
+  id: string;
+  type:
+    | 'YEAR_SELECTOR_BANNER'
+    | 'GREETING_HEADER'
+    | 'STATS_GRID'
+    | 'QUICK_ACCESS_GRID'
+    | 'SECTION_HEADER_WITH_BADGE';
+  properties: BFFComponentProperties;
+}
+
+/** Top-level response from GET /api/v1/sdui/home. */
+export interface HomeScreenBFFResponse {
+  screenId: string;
+  version: string;
+  components: BFFScreenComponent[];
+}
+
+// ─── End BFF SDUI types ───────────────────────────────────────────────────────
+
 // Estilo genérico de componente (pode ser View/Text/Image)
 export type ComponentStyle = StyleProp<ViewStyle | TextStyle | ImageStyle>;
 

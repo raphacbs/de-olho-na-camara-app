@@ -4,6 +4,18 @@ import { useNavigation } from '@/navigation/routerShim';
 import { RootTabParamList } from '@/types/navigation';
 import { useScreenParams } from '../ScreenParamsContext';
 
+/**
+ * Maps BFF-defined route strings to tab screen names.
+ * Extracted as a constant so new routes can be added in one place.
+ */
+const BFF_ROUTE_TO_SCREEN: Record<string, keyof RootTabParamList> = {
+  '/politicians': 'Deputados',
+  '/followed': 'Deputados',
+  '/propositions': 'Proposições',
+  '/votings': 'Votações',
+  '/expenses': 'Configurações',
+  '/settings': 'Configurações',
+};
 
 // Armazenamento temporário para dados entre telas (genérico)
 const navigationDataStore: Record<string, unknown> = {};
@@ -29,6 +41,19 @@ export function useSDUIActions() {
     console.log('SDUI Action triggered:', actionId, params);
 
     switch (actionId) {
+      // BFF route-based navigation (used by StatsGrid, QuickAccessGrid, SectionHeaderWithBadge)
+      case 'NAVIGATE': {
+        const route = params?.route as string | undefined;
+        if (!route) break;
+        const screenName = BFF_ROUTE_TO_SCREEN[route];
+        if (screenName) {
+          navigation.navigate(screenName as 'Home');
+        } else {
+          console.warn('SDUI NAVIGATE: unknown route', route);
+        }
+        break;
+      }
+
       case 'navigate_propositions':
         navigation.navigate('Proposições', params as RootTabParamList['Proposições']);
         break;

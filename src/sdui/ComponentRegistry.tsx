@@ -1,4 +1,5 @@
 import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
 import { SDUIComponent } from '@/types/sdui';
 import { TextBlock } from './components/TextBlock';
 import { Container } from './components/Container';
@@ -9,13 +10,18 @@ import { Button } from './components/Button';
 import { Input } from './components/Input';
 import { Avatar } from './components/Avatar';
 import { AdvancedFilter } from './components/AdvancedFilter';
-
-
+// BFF SDUI components
+import { YearSelectorBanner } from './components/YearSelectorBanner';
+import { GreetingHeader } from './components/GreetingHeader';
+import { StatsGrid } from './components/StatsGrid';
+import { QuickAccessGrid } from './components/QuickAccessGrid';
+import { SectionHeaderWithBadge } from './components/SectionHeaderWithBadge';
 
 
 // Registry de componentes SDUI
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const componentRegistry: Record<string, React.ComponentType<any>> = {
+  // Generic components
   TextBlock,
   Container,
   Spacer,
@@ -24,9 +30,49 @@ export const componentRegistry: Record<string, React.ComponentType<any>> = {
   Button,
   Input,
   Avatar,
-  AdvancedFilter
+  AdvancedFilter,
+  // BFF SDUI home-screen components
+  YEAR_SELECTOR_BANNER: YearSelectorBanner,
+  GREETING_HEADER: GreetingHeader,
+  STATS_GRID: StatsGrid,
+  QUICK_ACCESS_GRID: QuickAccessGrid,
+  SECTION_HEADER_WITH_BADGE: SectionHeaderWithBadge,
   // Adicionar novos componentes aqui conforme necessário
 };
+
+/**
+ * Fallback shown when the BFF sends a component type not yet in the registry.
+ * Renders a visible placeholder in __DEV__ mode so developers notice it quickly,
+ * and renders nothing in production (avoids showing broken UI to users).
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function UnknownComponentFallback({ type }: { type?: string }) {
+  if (!__DEV__) return null;
+  return (
+    <View style={unknownStyles.container}>
+      <Text style={unknownStyles.text}>
+        ⚠️ Componente desconhecido: "{type ?? '?'}"{'\n'}
+        Registre-o em ComponentRegistry.tsx
+      </Text>
+    </View>
+  );
+}
+
+const unknownStyles = StyleSheet.create({
+  container: {
+    borderWidth: 1,
+    borderColor: '#F59E0B',
+    borderStyle: 'dashed',
+    borderRadius: 8,
+    padding: 12,
+    marginVertical: 4,
+    backgroundColor: '#FFFBEB',
+  },
+  text: {
+    fontSize: 12,
+    color: '#92400E',
+  },
+});
 
 // Função auxiliar para renderizar componentes filhos com chaves determinísticas
 export const renderChildren = (
@@ -42,7 +88,8 @@ export const renderChildren = (
     const Component = componentRegistry[componentType];
     if (!Component) {
       console.warn(`Component type "${componentType}" not found in registry. Available types:`, Object.keys(componentRegistry));
-      return null;
+      const fallbackPath = `${parentPath}-unknown-${componentType}-${index}`;
+      return <UnknownComponentFallback key={fallbackPath} type={componentType} />;
     }
 
     // Passar todas as props do componente
