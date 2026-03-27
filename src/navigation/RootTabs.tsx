@@ -2,15 +2,20 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
-import { HomeScreen } from '@/screens/HomeScreen';
 import { DeputadosScreen } from '@/screens/DeputadosScreen';
 import { ProposalsScreen } from '@/screens/ProposalsScreen';
 import { VotesScreen } from '@/screens/VotesScreen';
 import { SettingsScreen } from '@/screens/SettingsScreen';
 import { RootTabParamList } from '@/types/navigation';
 import { NewHomeScreen } from '@/screens/NewHomeScreen';
+import { SDUIHomeScreen } from '@/screens/SDUIHomeScreen';
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
+
+/** Feature flag: set EXPO_PUBLIC_SDUI_ENABLED=true to use the SDUI home screen. */
+const isSduiEnabled = process.env.EXPO_PUBLIC_SDUI_ENABLED === 'true';
+
+const HomeScreen = isSduiEnabled ? SDUIHomeScreen : NewHomeScreen;
 
 export function RootTabs() {
   return (
@@ -27,7 +32,7 @@ export function RootTabs() {
     >
       <Tab.Screen
         name="Home"
-        component={NewHomeScreen}
+        component={HomeScreen}
         options={{
           title: 'Início',
           tabBarIcon: ({ color, size }) => (

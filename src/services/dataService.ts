@@ -15,11 +15,136 @@ import {
   DashboardStatsDto,
   MetricData
 } from '@/types/api';
+import { HomeScreenBFFResponse } from '@/types/sdui';
 
 const isMocked = process.env.EXPO_PUBLIC_MOCK_ENABLED === 'true';
 
+/** Mock SDUI home screen returned when EXPO_PUBLIC_MOCK_ENABLED=true. */
+const mockSDUIHomeScreen: HomeScreenBFFResponse = {
+  screenId: 'home',
+  version: '1.0',
+  components: [
+    {
+      id: 'year-selector-banner',
+      type: 'YEAR_SELECTOR_BANNER',
+      properties: {
+        title: 'Dados exibidos referentes ao ano selecionado',
+        subtitle: 'Altere o ano para filtrar todas as consultas',
+        selectedYear: new Date().getFullYear(),
+        buttonBackgroundColor: '#D32F2F',
+      },
+    },
+    {
+      id: 'greeting-header',
+      type: 'GREETING_HEADER',
+      properties: {
+        greeting: 'Olá, Visitante 👋',
+        subtitle: 'Acompanhe a atividade dos deputados federais',
+      },
+    },
+    {
+      id: 'stats-grid',
+      type: 'STATS_GRID',
+      properties: {
+        columns: 2,
+        items: [
+          {
+            id: 'active-politicians',
+            icon: 'people_outline',
+            value: '513',
+            label: 'Deputados Ativos',
+            backgroundColor: '#1565C0',
+            action: { type: 'NAVIGATE', route: '/politicians' },
+          },
+          {
+            id: 'following',
+            icon: 'star_outline',
+            value: '12',
+            label: 'Seguindo',
+            backgroundColor: '#F57C00',
+            action: { type: 'NAVIGATE', route: '/followed' },
+          },
+          {
+            id: 'propositions',
+            icon: 'description_outline',
+            value: '23456',
+            label: 'Proposições',
+            backgroundColor: '#2E7D32',
+            action: { type: 'NAVIGATE', route: '/propositions' },
+          },
+          {
+            id: 'monthly-expenses',
+            icon: 'attach_money',
+            value: 'R$ 123M',
+            label: 'Despesas do Mês',
+            backgroundColor: '#C62828',
+            action: { type: 'NAVIGATE', route: '/expenses' },
+          },
+        ],
+      },
+    },
+    {
+      id: 'quick-access-grid',
+      type: 'QUICK_ACCESS_GRID',
+      properties: {
+        title: 'Acesso Rápido',
+        columns: 2,
+        items: [
+          {
+            id: 'propositions-quick',
+            icon: 'description',
+            label: 'Proposições',
+            action: { type: 'NAVIGATE', route: '/propositions' },
+          },
+          {
+            id: 'votacoes-quick',
+            icon: 'how_to_vote',
+            label: 'Votações',
+            action: { type: 'NAVIGATE', route: '/votings' },
+          },
+          {
+            id: 'deputados-quick',
+            icon: 'people',
+            label: 'Deputados',
+            action: { type: 'NAVIGATE', route: '/politicians' },
+          },
+          {
+            id: 'configuracoes-quick',
+            icon: 'settings',
+            label: 'Configurações',
+            action: { type: 'NAVIGATE', route: '/expenses' },
+          },
+        ],
+      },
+    },
+    {
+      id: 'followed-section-header',
+      type: 'SECTION_HEADER_WITH_BADGE',
+      properties: {
+        title: 'Deputados Seguidos',
+        badgeCount: 12,
+        badgeBackgroundColor: '#E65100',
+        action: { type: 'NAVIGATE', route: '/followed' },
+      },
+    },
+  ],
+};
+
 class DataService {
 
+  // ─── SDUI ──────────────────────────────────────────────────────────────────
+
+  /** Fetch the SDUI definition of the home screen from the BFF. */
+  async getSDUIHomeScreen(year?: number | null): Promise<HomeScreenBFFResponse> {
+    if (isMocked) {
+      return mockSDUIHomeScreen;
+    }
+    const params = year ? { ano: year } : undefined;
+    const response = await apiClient.get<HomeScreenBFFResponse>('/api/v1/sdui/home', params);
+    return response.data;
+  }
+
+  // ─── Home Metrics ──────────────────────────────────────────────────────────
 
   // Home Metrics
   async getHomeMetrics(year?: number | null): Promise<MetricData[]> {

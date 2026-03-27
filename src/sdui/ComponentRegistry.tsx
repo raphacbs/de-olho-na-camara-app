@@ -9,13 +9,18 @@ import { Button } from './components/Button';
 import { Input } from './components/Input';
 import { Avatar } from './components/Avatar';
 import { AdvancedFilter } from './components/AdvancedFilter';
-
-
+// BFF SDUI components
+import { YearSelectorBanner } from './components/YearSelectorBanner';
+import { GreetingHeader } from './components/GreetingHeader';
+import { StatsGrid } from './components/StatsGrid';
+import { QuickAccessGrid } from './components/QuickAccessGrid';
+import { SectionHeaderWithBadge } from './components/SectionHeaderWithBadge';
 
 
 // Registry de componentes SDUI
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const componentRegistry: Record<string, React.ComponentType<any>> = {
+  // Generic components
   TextBlock,
   Container,
   Spacer,
@@ -24,7 +29,13 @@ export const componentRegistry: Record<string, React.ComponentType<any>> = {
   Button,
   Input,
   Avatar,
-  AdvancedFilter
+  AdvancedFilter,
+  // BFF SDUI home-screen components
+  YEAR_SELECTOR_BANNER: YearSelectorBanner,
+  GREETING_HEADER: GreetingHeader,
+  STATS_GRID: StatsGrid,
+  QUICK_ACCESS_GRID: QuickAccessGrid,
+  SECTION_HEADER_WITH_BADGE: SectionHeaderWithBadge,
   // Adicionar novos componentes aqui conforme necessário
 };
 
