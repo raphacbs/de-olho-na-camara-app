@@ -1,10 +1,27 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, Switch, Modal, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '@/contexts/AuthContext';
+import * as biometricsService from '@/services/biometrics';
+import { authService } from '@/services/authService';
 
 export function SettingsScreen() {
-  const { user, logout } = useAuth();
+  const { user, logout, disableBiometricLogin, enableBiometricLogin } = useAuth();
+  const [biometricEnabled, setBiometricEnabled] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [passwordConfirm, setPasswordConfirm] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    void (async () => {
+      try {
+        const enabled = await biometricsService.isBiometricEnabled();
+        setBiometricEnabled(enabled);
+      } catch (err) {
+        setBiometricEnabled(false);
+      }
+    })();
+  }, []);
 
   const handleLogout = () => {
     Alert.alert(
@@ -22,6 +39,67 @@ export function SettingsScreen() {
         },
       ]
     );
+  };
+
+  const toggleBiometric = async (value: boolean) => {
+    try {
+      if (!value) {
+        // disable
+        await disableBiometricLogin();
+        setBiometricEnabled(false);
+      } else {
+        // If no user/email available, ask to login first
+        if (!user?.email) {
+          Alert.alert('Conta não identificada', 'Faça login primeiro para habilitar o login por biometria.');
+          return;
+        }
+
+        const supported = await biometricsService.isBiometricSupported();
+        if (!supported) {
+          Alert.alert('Biometria não disponível', 'Este dispositivo não suporta autenticação biométrica ou não há biometria cadastrada.');
+          return;
+        }
+
+        // Show modal to ask for current password to save credentials
+        setPasswordConfirm('');
+        setShowPasswordModal(true);
+      }
+    } catch (err) {
+      console.warn('Erro ao alternar biometria:', err);
+      Alert.alert('Erro', 'Não foi possível atualizar a configuração de biometria.');
+    }
+  };
+
+  const handleConfirmPassword = async () => {
+    if (!passwordConfirm) {
+      Alert.alert('Senha requerida', 'Digite sua senha para confirmar.');
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+      // Validate credentials by calling authService.login first (avoids saving incorrect password)
+      try {
+        await authService.login({ email: user!.email, password: passwordConfirm });
+      } catch (err) {
+        throw new Error('Senha incorreta');
+      }
+
+      // If validation passed, save credentials securely
+      await enableBiometricLogin(user!.email, passwordConfirm);
+      setBiometricEnabled(true);
+      setShowPasswordModal(false);
+      Alert.alert('Pronto', 'Login por biometria habilitado.');
+    } catch (err) {
+      console.warn('Erro ao salvar credenciais biométricas no settings:', err);
+      Alert.alert('Erro', 'Não foi possível salvar as credenciais. Verifique sua senha e tente novamente.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleCancelPasswordModal = () => {
+    setShowPasswordModal(false);
   };
 
   return (
@@ -49,6 +127,13 @@ export function SettingsScreen() {
         {/* Account Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Conta</Text>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            <Text style={{ fontSize: 16, color: '#333' }}>Login com biometria</Text>
+            <Switch
+              value={biometricEnabled}
+              onValueChange={toggleBiometric}
+            />
+          </View>
           <TouchableOpacity
             style={styles.logoutButton}
             onPress={handleLogout}
@@ -67,6 +152,32 @@ export function SettingsScreen() {
           </View>
         </View>
       </ScrollView>
+
+      {/* Password modal for enabling biometric from settings */}
+      <Modal visible={showPasswordModal} transparent animationType="fade">
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', padding: 24 }}>
+          <View style={{ backgroundColor: '#fff', borderRadius: 12, padding: 16 }}>
+            <Text style={{ fontSize: 16, fontWeight: '600', marginBottom: 8 }}>Confirmar senha</Text>
+            <Text style={{ marginBottom: 12 }}>Digite sua senha para salvar as credenciais de login de forma segura.</Text>
+            <TextInput
+              placeholder="Senha"
+              secureTextEntry
+              value={passwordConfirm}
+              onChangeText={setPasswordConfirm}
+              style={{ borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 8, marginBottom: 12 }}
+            />
+            <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
+              <TouchableOpacity onPress={handleCancelPasswordModal} style={{ padding: 8, marginRight: 8 }}>
+                <Text style={{ color: '#666' }}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleConfirmPassword} style={{ padding: 8 }}>
+                <Text style={{ color: '#009C3B', fontWeight: '600' }}>{isSaving ? 'Salvando...' : 'Confirmar'}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
     </SafeAreaView>
   );
 }

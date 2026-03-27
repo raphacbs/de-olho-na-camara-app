@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,10 +8,13 @@ import {
   Platform,
   ScrollView,
   ActivityIndicator,
+  Switch,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '@/contexts/AuthContext';
 import { Input } from '@/components/Input';
+import * as biometricsService from '@/services/biometrics';
 
 interface LoginFormData {
   email: string;
@@ -27,7 +30,7 @@ interface FormErrors {
 }
 
 export function LoginScreen() {
-  const { login, register, isLoading } = useAuth();
+  const { login, register, isLoading, isBiometricAvailable, enableBiometricLogin, disableBiometricLogin, isAuthenticated } = useAuth();
 
   const [isLoginMode, setIsLoginMode] = useState(true);
   const [formData, setFormData] = useState<LoginFormData>({
@@ -36,6 +39,22 @@ export function LoginScreen() {
     fullName: '',
   });
   const [errors, setErrors] = useState<FormErrors>({});
+  const [biometricSupported, setBiometricSupported] = useState(false);
+  const [useBiometrics, setUseBiometrics] = useState(false);
+  const [savedBiometricAvailable, setSavedBiometricAvailable] = useState(false);
+
+  useEffect(() => {
+    void (async () => {
+      try {
+        const available = await isBiometricAvailable();
+        setBiometricSupported(available);
+        const enabled = await biometricsService.isBiometricEnabled();
+        setSavedBiometricAvailable(enabled);
+      } catch (err) {
+        setBiometricSupported(false);
+      }
+    })();
+  }, [isBiometricAvailable, isAuthenticated]);
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -50,8 +69,8 @@ export function LoginScreen() {
     // Validar senha
     if (!formData.password.trim()) {
       newErrors.password = 'Senha é obrigatória';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'Senha deve ter pelo menos 6 caracteres';
+    } else if (formData.password.length < 3) {
+      newErrors.password = 'Senha deve ter pelo menos 3 caracteres';
     }
 
     // Validar nome no modo cadastro
@@ -83,6 +102,22 @@ export function LoginScreen() {
           fullName: formData.fullName?.trim() || '',
         });
       }
+
+      // If user opted to use biometrics and device supports it, enable and save credentials
+      if (useBiometrics && biometricSupported) {
+        try {
+          await enableBiometricLogin(formData.email.trim(), formData.password);
+        } catch (err) {
+          console.warn('Não foi possível habilitar biometria:', err);
+        }
+      } else if (!useBiometrics) {
+        // if user turned off, ensure stored credentials are removed
+        try {
+          await disableBiometricLogin();
+        } catch (err) {
+          // ignore
+        }
+      }
     } catch (error) {
       console.error('❌ Erro capturado na tela de login:', error);
 
@@ -106,6 +141,38 @@ export function LoginScreen() {
       }
 
       setErrors({ general: errorMessage });
+    }
+  };
+
+  const handleBiometricLogin = async () => {
+    try {
+      if (!biometricSupported) return;
+
+      const enabled = await biometricsService.isBiometricEnabled();
+      if (!enabled) {
+        setSavedBiometricAvailable(false);
+        return;
+      }
+
+      const supported = await biometricsService.isBiometricSupported();
+      if (!supported) {
+        Alert.alert('Biometria indisponível', 'Este dispositivo não suporta biometria ou não há cadastrada.');
+        return;
+      }
+
+      const authed = await biometricsService.authenticateBiometric();
+      if (!authed) return;
+
+      const creds = await biometricsService.getSavedCredentials();
+      if (!creds) {
+        Alert.alert('Credenciais não encontradas', 'Não há credenciais salvas para efetuar login via biometria.');
+        return;
+      }
+
+      await login({ email: creds.email, password: creds.password });
+    } catch (err) {
+      console.warn('Erro no login biométrico:', err);
+      Alert.alert('Erro', 'Não foi possível efetuar login por biometria.');
     }
   };
 
@@ -192,6 +259,18 @@ export function LoginScreen() {
               autoCorrect={false}
             />
 
+            {/* Biometric opt-in */}
+            {biometricSupported && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                <Text style={{ color: '#333' }}>Usar biometria para login</Text>
+                <Switch
+                  value={useBiometrics}
+                  onValueChange={(v) => setUseBiometrics(v)}
+                  disabled={isLoading}
+                />
+              </View>
+            )}
+
             {/* Erro geral */}
             {errors.general && (
               <View style={styles.errorContainer}>
@@ -214,6 +293,18 @@ export function LoginScreen() {
                 </Text>
               )}
             </TouchableOpacity>
+
+            {/* Biometric quick login */}
+            {savedBiometricAvailable && (
+              <TouchableOpacity
+                style={[styles.primaryButton, { backgroundColor: '#444' }]}
+                onPress={() => { void handleBiometricLogin(); }}
+                disabled={isLoading}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.primaryButtonText}>Entrar com biometria</Text>
+              </TouchableOpacity>
+            )}
 
             {/* Toggle entre Login/Cadastro */}
             <TouchableOpacity

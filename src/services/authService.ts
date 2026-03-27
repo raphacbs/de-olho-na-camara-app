@@ -142,7 +142,7 @@ class AuthService {
    * Valida se a resposta de autenticação tem os campos obrigatórios
    */
   private validateAuthResponse(data: AuthResponse): void {
-    if (!data.accessToken || !data.tokenType || typeof data.expireIn !== 'number') {
+    if (!data.accessToken || !data.tokenType || data.expireIn == null) {
       throw new Error('Resposta de autenticação inválida');
     }
   }
@@ -151,6 +151,10 @@ class AuthService {
    * Trata erros de autenticação de forma padronizada
    */
   private handleAuthError(error: unknown): Error {
+    type AuthError = Error & { code?: string; status?: number };
+
+    const mappedError = new Error('Erro de autenticação') as AuthError;
+
     if (error instanceof Error) {
       // Mapeamento de erros comuns
       const errorMappings: Record<string, string> = {
@@ -169,14 +173,19 @@ class AuthService {
       const errorCode = apiError.code || apiError.status?.toString();
 
       if (errorCode && errorMappings[errorCode]) {
-        return new Error(errorMappings[errorCode]);
+        mappedError.message = errorMappings[errorCode];
+      } else {
+        mappedError.message = error.message || 'Erro de autenticação';
       }
 
-      // Retornar mensagem do erro ou mensagem genérica
-      return new Error(error.message || 'Erro de autenticação');
+      // Attach code/status for callers to inspect
+      mappedError.code = apiError.code;
+      mappedError.status = apiError.status;
+
+      return mappedError;
     }
 
-    return new Error('Erro desconhecido de autenticação');
+    return mappedError;
   }
 
   /**
