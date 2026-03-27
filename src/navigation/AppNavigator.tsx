@@ -89,16 +89,14 @@ export function AppNavigator() {
                     title: 'Deputados Seguidos',
                 }}
             />
-            <Stack.Navigator>
-                <Stack.Screen
-                    name="PoliticianList"
-                    component={DeputadosScreen}
-                    options={{
-                        headerShown: true,
-                        title: 'Deputados',
-                    }}
-                />
-            </Stack.Navigator>
+            <Stack.Screen
+                name="PoliticianList"
+                component={DeputadosScreen}
+                options={{
+                    headerShown: true,
+                    title: 'Deputados',
+                }}
+            />
             <Stack.Screen
                 name="ProposalDetail"
                 component={ProposalDetailComponent}
