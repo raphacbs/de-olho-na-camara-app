@@ -50,8 +50,8 @@ export function LoginScreen() {
     // Validar senha
     if (!formData.password.trim()) {
       newErrors.password = 'Senha é obrigatória';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'Senha deve ter pelo menos 6 caracteres';
+    } else if (formData.password.length < 2) {
+      newErrors.password = 'Senha deve ter pelo menos 2 caracteres';
     }
 
     // Validar nome no modo cadastro
